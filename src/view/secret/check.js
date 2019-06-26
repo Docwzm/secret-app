@@ -45,20 +45,42 @@ class CheckSecre extends React.Component {
     return (
       <div className="secret-check-wrap">
         {
-          check_status === 'off' ? <form className="secret-check-form">
+          check_status === 'off' ? <div className="secret-check-form-wrap">
+            <div className="tip">
+              <p>您的朋友随礼物还给您留了一段私言密语，您的手机号是查询留言的密码！</p>
+              <p>请输入您的手机号码查看TA为您留下的私言密语......</p>
+            </div>
+            <form className="secret-check-form">
                   <InputItem
                       type="phone"
-                      placeholder="input your phone"
                       {...getFieldProps('phone', {
                         initialValue: this.state.phone,
                         rules: [
-                          { required: true, message: 'Must input a phone' },
+                          { required: true, message: '请输入手机号码' },
                         ],
                       })}
-                    >手机号码</InputItem>
-                  <Button className="fixed-bottom-btn" type="primary" onClick={this.onSubmit}>提交</Button>
-          </form>:<div className="result">
-                      result
+                    >手机号码：</InputItem>
+                  <Button size="small" type="primary" onClick={this.onSubmit}>查询</Button>
+          </form>
+          </div>:<div className="result">
+              <div className="item">
+                <p className="label">我想对您说：</p>
+                <p className="content light">我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是</p>
+              </div>
+              <div className="item">
+                <p className="label">永恒一刻：</p>
+                <p className="content">
+                  <img src="" />
+                </p>
+              </div>
+              <div className="item">
+                <p className="label">送卡人姓名/昵称：</p>
+                <p className="content">fafafafa</p>
+              </div>
+              <div className="item">
+                <p className="label">提交时间：</p>
+                <p className="content">2019-06-20 14:03:38</p>
+              </div>
           </div>
         }
       </div>

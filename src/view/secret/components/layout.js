@@ -1,7 +1,7 @@
 import React from 'react'
 import { Route } from 'react-router-dom'
 import { queryUrlParam } from '@/utils/util'
-import testBg from '@/assets/images/logo.png'
+import testBg from '@/assets/images/bg.jpg'
 import '../styles/layout.scss'
 import '../styles/form.scss'
 
