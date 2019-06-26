@@ -19,6 +19,7 @@ class WriteSecre extends React.Component {
     this.props.form.validateFields({ force: true }, (errors,values) => {
       if (!errors) {
         console.log(values);
+        this.props.history.push(`/secret/check?phone=${values.phone}`)
       } else {
         for(let x in errors){
           let error = errors[x];

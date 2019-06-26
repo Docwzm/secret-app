@@ -21,6 +21,11 @@ export default class extends React.Component {
         }else{
             this.getBgUrl();
         }
+
+        this.getAuth()
+        
+    }
+    getAuth(){
         
     }
     getBgUrl() {

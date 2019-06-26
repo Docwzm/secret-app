@@ -1,10 +1,25 @@
 import React from 'react'
 import { InputItem, Toast, Button } from 'antd-mobile';
 import { createForm } from 'rc-form';
+import { queryUrlParam } from '@/utils/util'
 
 class CheckSecre extends React.Component {
   state = {
     check_status:'off'
+  }
+
+  componentWillMount() {
+    let phone = queryUrlParam(this.props.history.location.search,'phone')
+    if(phone){
+      this.getInfo()
+    }
+  }
+
+
+  getInfo() {
+    this.setState({
+      check_status: 'on'
+    })
   }
 
   onSubmit = () => {
