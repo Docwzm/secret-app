@@ -1,8 +1,5 @@
 //格式化时间
-export function parseTime(time, cFormat) {
-  if (arguments.length === 0) {
-    return null
-  }
+const parseTime = (time, cFormat) => {
   const format = cFormat || '{y}-{m}-{d} {h}:{i}:{s}'
   let date
   if (typeof time === 'object') {
@@ -35,7 +32,7 @@ export function parseTime(time, cFormat) {
 /**
 * 获取queryString*
 */
-export function queryUrlParam(str,name) {
+const queryUrlParam = (str,name) => {
   var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
   if (str.indexOf('?') >= 0) {
     var r = str.split("?")[1].match(reg);
@@ -43,4 +40,39 @@ export function queryUrlParam(str,name) {
     return null;
   }
   return null;
+}
+
+
+/**
+ * 本地储存
+ * @param {*} key 
+ * @param {*} value 
+ */
+const setLocal = (key, value) => {
+  return window.localStorage.setItem(key, value)
+}
+
+/**
+ * 获取本地储存
+ * @param {*} key 
+ */
+const getLocal = (key) => {
+  return window.localStorage.getItem(key)
+}
+
+/**
+ * 移除某个本地储存
+ * @param {*} key 
+ */
+const removeLocal = (key) => {
+  return window.localStorage.removeItem(key)
+}
+
+
+export {
+  parseTime,
+  queryUrlParam,
+  setLocal,
+  getLocal,
+  removeLocal
 }

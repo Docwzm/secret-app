@@ -27,10 +27,6 @@ body, div, p, span, header, footer, nav, section, aside, article, ul, dl, dt, dd
   
   a{
     text-decoration: none;
-    &:hover{
-      background:none;
-      text-decoration: none;
-    }
   }
   
   img {

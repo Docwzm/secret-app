@@ -1,11 +1,103 @@
 import React from 'react'
 import { List, InputItem, Toast, Button, ImagePicker, TextareaItem } from 'antd-mobile';
 import { createForm } from 'rc-form';
+import Recorder from '@/utils/recorder';
+import { setLocal, getLocal, removeLocal } from '@/utils/util'
 
 class WriteSecre extends React.Component {
-  state = {
-    disabled: true,
-    files:[]
+  constructor() {
+    super()
+    this.state = {
+      disabled: true,
+      files: [],
+      recorder: null,
+      audioStatus: 0
+    }
+  }
+
+  componentWillMount() {
+    let cacheData = getLocal('_secret_');
+    if (cacheData) {
+      cacheData = JSON.parse(cacheData)
+      this.setState({
+        ...cacheData
+      })
+      removeLocal('_secret_')
+    }
+    clearTimeout(this.timer)
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.timer)
+  }
+
+  startUserMedia(audio_context, stream, callback) {
+    let input = audio_context.createMediaStreamSource(stream);
+    this.setState({
+      recorder: new Recorder(input)
+    }, () => {
+      callback && callback()
+    })
+  }
+
+  stopRecording() {
+    let { recorder } = this.state;
+    recorder.stop();
+
+    recorder.exportWAV((blob) => {
+      this.setState({
+        audioUrl: URL.createObjectURL(blob),
+        audioStatus: 2
+      })
+    });
+
+    recorder.clear();
+  }
+
+  record = () => {
+    let { audioStatus, recorder } = this.state;
+    clearTimeout(this.timer)
+
+    const func = () => {
+      let { audioStatus, recorder } = this.state;
+      if (audioStatus == 0 || audioStatus == 2) {
+        this.setState({
+          audioStatus: 1
+        })
+        recorder.record();
+        clearTimeout(this.timer)
+        this.timer = setTimeout(() => {
+          this.stopRecording()
+        }, 30000)
+      } else if (audioStatus == 1) {
+        this.stopRecording()
+      }
+    }
+
+    if (audioStatus == 0 && !recorder) {
+      let audio_context = null
+      try {
+        // webkit shim
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+        window.URL = window.URL || window.webkitURL;
+
+        audio_context = new AudioContext;
+        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+          removeLocal('_secret_')
+          this.startUserMedia(audio_context, stream, func)
+        }).catch(e => {
+          setLocal('_secret_', JSON.stringify(this.props.form.getFieldsValue()))
+          window.location.reload();
+        });
+      } catch (e) {
+        Toast.info('该浏览器不支持录音,请用其他浏览器打开')
+      }
+
+    } else {
+      func()
+    }
+
   }
 
   validateIdp = (rule, date, callback) => {
@@ -27,7 +119,7 @@ class WriteSecre extends React.Component {
     this.props.form.validateFields({ force: true }, (errors, values) => {
       if (!errors) {
         console.log(values);
-        this.props.history.push(`/secret/check?phone=${values.phone}`)
+        this.props.history.push(`/secret/check?phone=${values.phone}&audio=${this.state.audioUrl}`)
       } else {
         for (let x in errors) {
           let error = errors[x];
@@ -39,10 +131,26 @@ class WriteSecre extends React.Component {
   }
 
   render() {
-    let { files } = this.state
+    let { files, audioStatus, audioUrl } = this.state
     const { getFieldProps, getFieldError } = this.props.form;
+
     return (
       <form className="secret-wirte-form">
+        <List className="no-bg" renderHeader={() => {
+          return (
+            <div>
+              <p className="label">录制语音：</p>
+              <p>限30秒</p>
+            </div>
+          )
+        }}>
+          <div className="audio-wrap">
+            <Button size="small" type="primary" onClick={this.record}>{audioStatus == 0 ? '开始' : (audioStatus == 1 ? '结束' : '重录')}</Button>
+            {
+              audioUrl ? <audio controls src={audioUrl}></audio> : null
+            }
+          </div>
+        </List>
         <List renderHeader={() => {
           return (
             <div>
@@ -55,9 +163,9 @@ class WriteSecre extends React.Component {
             rows="3"
             {...getFieldProps('test1', {
               initialValue: this.state.test1,
-              rules: [
-                { required: true, message: 'Must input a test1' },
-              ],
+              // rules: [
+              //   { required: true, message: '请输入对TA说的话' },
+              // ],
             })}
           ></TextareaItem>
         </List>
@@ -70,13 +178,13 @@ class WriteSecre extends React.Component {
             </div>
           )
         }}>
-         <ImagePicker
-          files={files}
-          onChange={this.onChange}
-          onImageClick={(index, fs) => console.log(index, fs)}
-          selectable={files.length < 1}
-          multiple={false}
-        />
+          <ImagePicker
+            files={files}
+            onChange={this.onChange}
+            onImageClick={(index, fs) => console.log(index, fs)}
+            selectable={files.length < 1}
+            multiple={false}
+          />
         </List>
 
         <List renderHeader={() => {
@@ -89,11 +197,7 @@ class WriteSecre extends React.Component {
         }}>
           <InputItem
             {...getFieldProps('idp', {
-              initialValue: this.state.idt,
-              rules: [
-                { required: true, message: 'Must select a date' },
-                { validator: this.validateIdp }
-              ],
+              initialValue: this.state.idt
             })}
           ></InputItem>
 
@@ -107,13 +211,13 @@ class WriteSecre extends React.Component {
             </div>
           )
         }}>
-           <InputItem
+          <InputItem
             {...getFieldProps('test2', {
               initialValue: this.state.test2,
-              rules: [
-                { required: true, message: 'Must select a date' },
-                { validator: this.validateIdp }
-              ],
+              // rules: [
+              //   { required: true, message: '请输入订单编号' },
+              //   { validator: this.validateIdp }
+              // ],
             })}
           ></InputItem>
         </List>
@@ -131,13 +235,34 @@ class WriteSecre extends React.Component {
             placeholder="对方手机号码"
             {...getFieldProps('phone', {
               initialValue: this.state.phone,
-              rules: [
-                { required: true, message: 'Must input a phone' },
-              ],
+              // rules: [
+              //   { required: true, message: '请输入对方手机号码' },
+              // ],
             })}
           ></InputItem>
         </List>
-        
+
+        <List className="no-bg" renderHeader={() => {
+          return (
+            <div>
+              <p className="label">验证码：</p>
+            </div>
+          )
+        }}>
+          <div className="code-wrap">
+            <InputItem
+              placeholder=""
+              {...getFieldProps('code', {
+                initialValue: this.state.code,
+                // rules: [
+                //   { required: true, message: '' },
+                // ],
+              })}
+            ></InputItem>
+            <div className="">1234</div>
+          </div>
+        </List>
+
         <Button className="fixed-bottom-btn" type="primary" onClick={this.onSubmit}>提交</Button>
       </form>
     )
