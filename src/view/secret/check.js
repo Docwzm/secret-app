@@ -2,38 +2,49 @@ import React from 'react'
 import { InputItem, Toast, Button } from 'antd-mobile';
 import { createForm } from 'rc-form';
 import { queryUrlParam } from '@/utils/util'
+import { getSecret } from '@/api'
+import WxImageViewer from 'react-wx-images-viewer';
 
 class CheckSecre extends React.Component {
   state = {
     check_status: 'off',
     audioUrl: '',
-    audioStatus: 0
+    audioStatus: 0,
+    secretInfo: {},
+    previewFlag: false,
+    previewImgArr: [],
+    previewImgIndex: 0
   }
 
   componentWillMount() {
     let phone = queryUrlParam(this.props.history.location.search, 'phone')
-    let audioUrl = queryUrlParam(this.props.history.location.search, 'audio')
     if (phone) {
-      this.getInfo()
+      this.getInfo(phone)
     }
-    this.setState({
-      audioUrl
-    })
   }
 
 
-  getInfo() {
-    this.setState({
-      check_status: 'on'
+  getInfo(phone) {
+    getSecret(phone).then(res => {
+      this.setState({
+        check_status: 'on',
+        secretInfo: res.data
+      })
     })
   }
 
   onSubmit = () => {
     this.props.form.validateFields({ force: true }, (errors, values) => {
       if (!errors) {
-        console.log(values);
-        this.setState({
-          check_status: 'on'
+        // this.setState({
+        //   check_status: 'on'
+        // })
+        values.phone = values.phone.toString().replace(/\s*/g, '')
+        getSecret(values.phone).then(res => {
+          this.setState({
+            check_status: 'on',
+            secretInfo: res.data
+          })
         })
       } else {
         for (let x in errors) {
@@ -46,12 +57,12 @@ class CheckSecre extends React.Component {
   }
 
   componentDidMount() {
-    let audio = document.getElementById('my_audio')
-    audio.addEventListener('ended', () => {
-      this.setState({
-        audioStatus: 3
-      })
-    }, false)
+    // let audio = document.getElementById('my_audio')
+    // audio.addEventListener('ended', () => {
+    //   this.setState({
+    //     audioStatus: 3
+    //   })
+    // }, false)
   }
 
   playAudio = () => {
@@ -82,11 +93,30 @@ class CheckSecre extends React.Component {
 
   }
 
+
+  previewImg = () => {
+    this.setState({
+      previewFlag: true,
+      previewImgArr: [this.state.secretInfo.thumb],
+      previewImgIndex: 0
+    })
+  }
+
+  previewClose = () => {
+    this.setState({
+      previewFlag: false
+    })
+  }
+
   render() {
-    let { check_status, audioStatus } = this.state;
+    let { check_status, audioStatus, secretInfo, previewFlag, previewImgArr, previewImgIndex } = this.state;
+    let { created_at, audio, say_to_you, thumb, username } = secretInfo
     const { getFieldProps } = this.props.form;
     return (
       <div className="secret-check-wrap">
+        {
+          previewFlag ? <WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex} /> : null
+        }
         {
           check_status === 'off' ? <div className="secret-check-form-wrap">
             <div className="tip">
@@ -103,36 +133,36 @@ class CheckSecre extends React.Component {
                   ],
                 })}
               >手机号码：</InputItem>
-              <Button size="small" type="primary" onClick={this.onSubmit}>查询</Button>
+              <Button className="search-btn" size="small" type="primary" onClick={this.onSubmit}>查询</Button>
             </form>
           </div> : <div className="result">
               <div className="item">
                 <p className="label">语音消息：</p>
                 <p className="content light">
                   <Button onClick={this.playAudio}>{(audioStatus == 0 || audioStatus == 2) ? '播放' : (audioStatus == 3 ? '重播' : '暂停')}</Button>
-                  <audio id="my_audio" src={this.state.audioUrl}></audio>
+                  <audio id="my_audio" src={audio}></audio>
                 </p>
               </div>
               <div className="item">
                 <p className="label">我想对您说：</p>
-                <p className="content light">我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是我是</p>
+                <p className="content light">{say_to_you}</p>
               </div>
               <div className="item">
                 <p className="label">永恒一刻：</p>
                 <p className="content">
-                  <img src="" />
+                  <img onClick={this.previewImg} src={thumb} />
                 </p>
               </div>
               <div className="item">
                 <p className="label">送卡人姓名/昵称：</p>
-                <p className="content">fafafafa</p>
+                <p className="content">{username}</p>
               </div>
               <div className="item">
                 <p className="label">提交时间：</p>
-                <p className="content">2019-06-20 14:03:38</p>
+                <p className="content">{created_at}</p>
               </div>
 
-              <a className="url-btn" href="www.baidu.com" target="_blank">我也要挑选礼物送TA</a>
+              <a className="url-btn" href="//www.baidu.com" target="_blank">我也要挑选礼物送TA</a>
             </div>
         }
       </div>

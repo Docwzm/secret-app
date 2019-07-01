@@ -1,9 +1,12 @@
 import request from '@/utils/request'
 
-const getSecret = (id) => {
+const getSecret = (mobile) => {
   return request({
-    url: '/api/speech/' + id,
-    method: 'get'
+    url: '/api/speech/info-mobile',
+    method: 'get',
+    params:{
+      mobile
+    }
   })
 }
 

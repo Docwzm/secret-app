@@ -16,7 +16,7 @@ export default class extends React.Component {
         let bgUrl = queryUrlParam(this.props.history.location.search,'bg');
         if(bgUrl){
             this.setState({
-                bgUrl
+                bgUrl:testBg
             })
         }else{
             this.getBgUrl();

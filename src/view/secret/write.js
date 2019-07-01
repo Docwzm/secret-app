@@ -4,6 +4,7 @@ import { createForm } from 'rc-form';
 import Recorder from '@/utils/recorder';
 import { setLocal, getLocal, removeLocal } from '@/utils/util'
 import { saveSecret, uploadImage, uploadAudio } from '@/api'
+import WxImageViewer from 'react-wx-images-viewer';
 
 class WriteSecre extends React.Component {
   constructor() {
@@ -13,7 +14,10 @@ class WriteSecre extends React.Component {
       files: [],
       imgFileId: null,
       recorder: null,
-      audioStatus: 0
+      audioStatus: 0,
+      previewFlag:false,
+      previewImgArr:[],
+      previewImgIndex:0
     }
   }
 
@@ -45,12 +49,9 @@ class WriteSecre extends React.Component {
   stopRecording() {
     let { recorder } = this.state;
     recorder.stop();
-console.log(recorder)
     recorder.exportWAV((blob) => {
-      console.log(URL.createObjectURL(blob))
-      console.log(blob)
       this.setState({
-        audioBlod:blob,
+        audioBlod: blob,
         audioUrl: URL.createObjectURL(blob),
         audioStatus: 2
       })
@@ -113,21 +114,32 @@ console.log(recorder)
     }
   }
 
+  previewImg = (fs) => {
+    this.setState({
+      previewFlag:true,
+      previewImgArr:[fs[0].url],
+      previewImgIndex:0
+    })
+  }
+
+  previewClose = () => {
+    this.setState({
+      previewFlag:false
+    })
+  }
+
   onChange = (files, type, index) => {
-    
-    if(files.length!=0){
+    if (files.length != 0) {
       let file = files[0].file;
       let formData = new FormData();
       formData.append('upfile', file)
-      console.log(file)
       uploadImage(formData).then(data => {
-        console.log(data.id)
         this.setState({
           files,
           imgFileId: data.id
         });
       })
-    }else{
+    } else {
       this.setState({
         files,
         imgFileId: null
@@ -138,17 +150,26 @@ console.log(recorder)
   onSubmit = () => {
     this.props.form.validateFields({ force: true }, (errors, values) => {
       if (!errors) {
-        values.thumb = this.state.imgFileId
+        if(this.state.imgFileId){
+          values.thumb = this.state.imgFileId
+        }
         values.mobile = values.mobile.replace(/\s*/g, '');
-        let formData = new FormData();
-        console.log(this.state.audioBlod)
-        formData.append('upfile', this.state.audioBlod)
-        uploadAudio(formData).then(data => {
-
-        })
-        // saveSecret(values).then(res => {
-        //   this.props.history.push(`/secret/check?phone=${values.phone}&audio=${this.state.audioUrl}`)
-        // })
+        
+        if(this.state.audioBlod){
+          let formData = new FormData();
+          formData.append('upfile', this.state.audioBlod, 'test.wav')
+          uploadAudio(formData).then(data => {
+            values.audio = data.id
+            saveSecret(values).then(res => {
+              this.props.history.push(`/secret/check?phone=${values.mobile}`)
+            })
+          })
+        }else{
+          saveSecret(values).then(res => {
+            this.props.history.push(`/secret/check?phone=${values.mobile}`)
+          })
+        }
+        
       } else {
         for (let x in errors) {
           let error = errors[x];
@@ -160,139 +181,144 @@ console.log(recorder)
   }
 
   render() {
-    let { files, audioStatus, audioUrl } = this.state
+    let { files, audioStatus, audioUrl, previewFlag, previewImgArr, previewImgIndex } = this.state
     const { getFieldProps, getFieldError } = this.props.form;
 
     return (
-      <form className="secret-wirte-form">
-        <List className="no-bg" renderHeader={() => {
-          return (
-            <div>
-              <p className="label">录制语音：</p>
-              <p>限30秒</p>
+      <div>
+        {
+          previewFlag?<WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex}/>:null
+        }
+        <form className="secret-wirte-form">
+          <List className="no-bg" renderHeader={() => {
+            return (
+              <div>
+                <p className="label">录制语音：</p>
+                <p>限30秒</p>
+              </div>
+            )
+          }}>
+            <div className="audio-wrap">
+              <Button size="small" type="primary" onClick={this.record}>{audioStatus == 0 ? '开始' : (audioStatus == 1 ? '结束' : '重录')}</Button>
+              {
+                audioUrl ? <audio controls src={audioUrl}></audio> : null
+              }
             </div>
-          )
-        }}>
-          <div className="audio-wrap">
-            <Button size="small" type="primary" onClick={this.record}>{audioStatus == 0 ? '开始' : (audioStatus == 1 ? '结束' : '重录')}</Button>
-            {
-              audioUrl ? <audio controls src={audioUrl}></audio> : null
-            }
-          </div>
-        </List>
-        <List renderHeader={() => {
-          return (
-            <div>
-              <p className="label">我想对您说：</p>
-              <p>填写您想对TA说的话，不限字数</p>
-            </div>
-          )
-        }}>
-          <TextareaItem
-            rows="2"
-            {...getFieldProps('say_to_you', {
-              initialValue: this.state.say_to_you,
-              rules: [
-                { required: true, message: '请输入对TA说的话' },
-              ],
-            })}
-          ></TextareaItem>
-        </List>
+          </List>
+          <List renderHeader={() => {
+            return (
+              <div>
+                <p className="label">我想对您说：</p>
+                <p>填写您想对TA说的话，不限字数</p>
+              </div>
+            )
+          }}>
+            <TextareaItem
+              rows="2"
+              {...getFieldProps('say_to_you', {
+                initialValue: this.state.say_to_you,
+                rules: [
+                  { required: true, message: '请输入对TA说的话' },
+                ],
+              })}
+            ></TextareaItem>
+          </List>
 
-        <List className="no-bg bg-list" renderHeader={() => {
-          return (
-            <div>
-              <p className="label">永恒一刻：</p>
-              <p>选填项！上传您想分享的图片，可选择上传或不上传！</p>
-            </div>
-          )
-        }}>
-          <ImagePicker
-            files={files}
-            onChange={this.onChange}
-            onImageClick={(index, fs) => console.log(index, fs)}
-            selectable={files.length < 1}
-            multiple={false}
-          />
-        </List>
+          <List className="no-bg bg-list" renderHeader={() => {
+            return (
+              <div>
+                <p className="label">永恒一刻：</p>
+                <p>选填项！上传您想分享的图片，可选择上传或不上传！</p>
+              </div>
+            )
+          }}>
+            <ImagePicker
+              files={files}
+              onChange={this.onChange}
+              onImageClick={(index, fs) => this.previewImg(fs)}
+              selectable={files.length < 1}
+              multiple={false}
+            />
+          </List>
 
-        <List renderHeader={() => {
-          return (
-            <div>
-              <p className="label">送卡人姓名/昵称：</p>
-              <p>选填项！如果您不想让对方知道是谁，可不填！</p>
-            </div>
-          )
-        }}>
-          <InputItem
-            {...getFieldProps('username', {
-              initialValue: this.state.username
-            })}
-          ></InputItem>
-
-        </List>
-
-        <List renderHeader={() => {
-          return (
-            <div>
-              <p className="label">powerionics淘宝或京东订单编号：</p>
-              <p>可在您的淘宝京东订单内查询复制！</p>
-            </div>
-          )
-        }}>
-          <InputItem
-            {...getFieldProps('order_code', {
-              initialValue: this.state.order_code,
-              rules: [
-                { required: true, message: '请输入订单编号' }
-              ],
-            })}
-          ></InputItem>
-        </List>
-
-        <List renderHeader={() => {
-          return (
-            <div>
-              <p className="label">手机号码：</p>
-              <p>必填项！请填写收卡人的手机号，此手机号即为对方查询留言的唯一密码，请核对无误！</p>
-            </div>
-          )
-        }}>
-          <InputItem
-            type="phone"
-            placeholder="对方手机号码"
-            {...getFieldProps('mobile', {
-              initialValue: this.state.mobile,
-              rules: [
-                { required: true, message: '请输入对方手机号码' },
-              ]
-            })}
-          ></InputItem>
-        </List>
-
-        {/* <List className="no-bg" renderHeader={() => {
-          return (
-            <div>
-              <p className="label">验证码：</p>
-            </div>
-          )
-        }}>
-          <div className="code-wrap">
+          <List renderHeader={() => {
+            return (
+              <div>
+                <p className="label">送卡人姓名/昵称：</p>
+                <p>选填项！如果您不想让对方知道是谁，可不填！</p>
+              </div>
+            )
+          }}>
             <InputItem
-              placeholder=""
-              {...getFieldProps('code', {
-                initialValue: this.state.code,
-                // rules: [
-                //   { required: true, message: '' },
-                // ],
+              {...getFieldProps('username', {
+                initialValue: this.state.username
               })}
             ></InputItem>
-            <div className="">1234</div>
-          </div>
-        </List> */}
 
-        <Button className="fixed-bottom-btn" type="primary" onClick={this.onSubmit}>提交</Button>
-      </form>
+          </List>
+
+          <List renderHeader={() => {
+            return (
+              <div>
+                <p className="label">powerionics淘宝或京东订单编号：</p>
+                <p>可在您的淘宝京东订单内查询复制！</p>
+              </div>
+            )
+          }}>
+            <InputItem
+              {...getFieldProps('order_code', {
+                initialValue: this.state.order_code,
+                rules: [
+                  { required: true, message: '请输入订单编号' }
+                ],
+              })}
+            ></InputItem>
+          </List>
+
+          <List renderHeader={() => {
+            return (
+              <div>
+                <p className="label">手机号码：</p>
+                <p>必填项！请填写收卡人的手机号，此手机号即为对方查询留言的唯一密码，请核对无误！</p>
+              </div>
+            )
+          }}>
+            <InputItem
+              type="phone"
+              placeholder="对方手机号码"
+              {...getFieldProps('mobile', {
+                initialValue: this.state.mobile,
+                rules: [
+                  { required: true, message: '请输入对方手机号码' },
+                ]
+              })}
+            ></InputItem>
+          </List>
+
+          {/* <List className="no-bg" renderHeader={() => {
+            return (
+              <div>
+                <p className="label">验证码：</p>
+              </div>
+            )
+          }}>
+            <div className="code-wrap">
+              <InputItem
+                placeholder=""
+                {...getFieldProps('code', {
+                  initialValue: this.state.code,
+                  // rules: [
+                  //   { required: true, message: '' },
+                  // ],
+                })}
+              ></InputItem>
+              <div className="">1234</div>
+            </div>
+          </List> */}
+
+          <Button className="fixed-bottom-btn" type="primary" onClick={this.onSubmit}>提交</Button>
+        </form>
+      </div>
     )
   }
 }
