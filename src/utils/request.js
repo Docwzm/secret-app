@@ -44,16 +44,13 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   response => {
     Toast.hide()
-    console.log(response)
-    console.log('................')
     removePending(response.config);  //在一个ajax响应后再执行一下取消操作，把已经完成的请求从pending中移除
-    const res = response.data
-    if (res.code != 200) {
-      Toast.info(res.message,1)
-      return Promise.reject(res)
-    } else {
+    // if (res.code != 0) {
+    //   Toast.info(res.message,1)
+    //   return Promise.reject(res)
+    // } else {
       return response.data
-    }
+    // }
   },
   error => {
     Toast.hide()

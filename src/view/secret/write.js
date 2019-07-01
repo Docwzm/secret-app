@@ -3,6 +3,7 @@ import { List, InputItem, Toast, Button, ImagePicker, TextareaItem } from 'antd-
 import { createForm } from 'rc-form';
 import Recorder from '@/utils/recorder';
 import { setLocal, getLocal, removeLocal } from '@/utils/util'
+import { saveSecret, uploadImage, uploadAudio } from '@/api'
 
 class WriteSecre extends React.Component {
   constructor() {
@@ -10,6 +11,7 @@ class WriteSecre extends React.Component {
     this.state = {
       disabled: true,
       files: [],
+      imgFileId: null,
       recorder: null,
       audioStatus: 0
     }
@@ -43,9 +45,12 @@ class WriteSecre extends React.Component {
   stopRecording() {
     let { recorder } = this.state;
     recorder.stop();
-
+console.log(recorder)
     recorder.exportWAV((blob) => {
+      console.log(URL.createObjectURL(blob))
+      console.log(blob)
       this.setState({
+        audioBlod:blob,
         audioUrl: URL.createObjectURL(blob),
         audioStatus: 2
       })
@@ -109,17 +114,41 @@ class WriteSecre extends React.Component {
   }
 
   onChange = (files, type, index) => {
-    this.setState({
-      files,
-    });
-    console.log(files)
+    
+    if(files.length!=0){
+      let file = files[0].file;
+      let formData = new FormData();
+      formData.append('upfile', file)
+      console.log(file)
+      uploadImage(formData).then(data => {
+        console.log(data.id)
+        this.setState({
+          files,
+          imgFileId: data.id
+        });
+      })
+    }else{
+      this.setState({
+        files,
+        imgFileId: null
+      });
+    }
   }
 
   onSubmit = () => {
     this.props.form.validateFields({ force: true }, (errors, values) => {
       if (!errors) {
-        console.log(values);
-        this.props.history.push(`/secret/check?phone=${values.phone}&audio=${this.state.audioUrl}`)
+        values.thumb = this.state.imgFileId
+        values.mobile = values.mobile.replace(/\s*/g, '');
+        let formData = new FormData();
+        console.log(this.state.audioBlod)
+        formData.append('upfile', this.state.audioBlod)
+        uploadAudio(formData).then(data => {
+
+        })
+        // saveSecret(values).then(res => {
+        //   this.props.history.push(`/secret/check?phone=${values.phone}&audio=${this.state.audioUrl}`)
+        // })
       } else {
         for (let x in errors) {
           let error = errors[x];
@@ -160,17 +189,17 @@ class WriteSecre extends React.Component {
           )
         }}>
           <TextareaItem
-            rows="3"
-            {...getFieldProps('test1', {
-              initialValue: this.state.test1,
-              // rules: [
-              //   { required: true, message: '请输入对TA说的话' },
-              // ],
+            rows="2"
+            {...getFieldProps('say_to_you', {
+              initialValue: this.state.say_to_you,
+              rules: [
+                { required: true, message: '请输入对TA说的话' },
+              ],
             })}
           ></TextareaItem>
         </List>
 
-        <List className="no-bg" renderHeader={() => {
+        <List className="no-bg bg-list" renderHeader={() => {
           return (
             <div>
               <p className="label">永恒一刻：</p>
@@ -196,8 +225,8 @@ class WriteSecre extends React.Component {
           )
         }}>
           <InputItem
-            {...getFieldProps('idp', {
-              initialValue: this.state.idt
+            {...getFieldProps('username', {
+              initialValue: this.state.username
             })}
           ></InputItem>
 
@@ -206,18 +235,17 @@ class WriteSecre extends React.Component {
         <List renderHeader={() => {
           return (
             <div>
-              <p className="label">powerionics淘宝或京东订单编号:：</p>
+              <p className="label">powerionics淘宝或京东订单编号：</p>
               <p>可在您的淘宝京东订单内查询复制！</p>
             </div>
           )
         }}>
           <InputItem
-            {...getFieldProps('test2', {
-              initialValue: this.state.test2,
-              // rules: [
-              //   { required: true, message: '请输入订单编号' },
-              //   { validator: this.validateIdp }
-              // ],
+            {...getFieldProps('order_code', {
+              initialValue: this.state.order_code,
+              rules: [
+                { required: true, message: '请输入订单编号' }
+              ],
             })}
           ></InputItem>
         </List>
@@ -233,16 +261,16 @@ class WriteSecre extends React.Component {
           <InputItem
             type="phone"
             placeholder="对方手机号码"
-            {...getFieldProps('phone', {
-              initialValue: this.state.phone,
-              // rules: [
-              //   { required: true, message: '请输入对方手机号码' },
-              // ],
+            {...getFieldProps('mobile', {
+              initialValue: this.state.mobile,
+              rules: [
+                { required: true, message: '请输入对方手机号码' },
+              ]
             })}
           ></InputItem>
         </List>
 
-        <List className="no-bg" renderHeader={() => {
+        {/* <List className="no-bg" renderHeader={() => {
           return (
             <div>
               <p className="label">验证码：</p>
@@ -261,7 +289,7 @@ class WriteSecre extends React.Component {
             ></InputItem>
             <div className="">1234</div>
           </div>
-        </List>
+        </List> */}
 
         <Button className="fixed-bottom-btn" type="primary" onClick={this.onSubmit}>提交</Button>
       </form>
