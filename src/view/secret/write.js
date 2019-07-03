@@ -3,7 +3,7 @@ import { List, InputItem, Toast, Button, ImagePicker, TextareaItem } from 'antd-
 import { createForm } from 'rc-form';
 import Recorder from '@/utils/recorder';
 import { setLocal, getLocal, removeLocal } from '@/utils/util'
-import { saveSecret, uploadImage, uploadAudio, getverifyCode } from '@/api'
+import { saveSecret, uploadImage, uploadAudio, getCodeUrl } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 
 class WriteSecre extends React.Component {
@@ -39,24 +39,22 @@ class WriteSecre extends React.Component {
     clearTimeout(this.timer)
   }
 
+  
+
   getCodeUrl = () => {
-    if(!this.state.codeLock){
-      this.setState({
-        codeLock:true
-      },() => {
-        getverifyCode().then(res => {
-          this.setState({
-            codeLock:false,
-            codeUrl:res.img,
-            codeKey:res.key
-          })
-        }).catch(e => {
-          this.setState({
-            codeLock:false
-          })
+    if(!this.codeLock){
+      this.codeLock = true;
+      getCodeUrl().then(res => {
+        this.codeLock = false
+        this.setState({
+          codeUrl:res.img,
+          codeKey:res.key
         })
+      }).catch(e => {
+        this.codeLock = false
       })
     }
+    
   }
 
   startUserMedia(audio_context, stream, callback) {
@@ -176,7 +174,7 @@ class WriteSecre extends React.Component {
           values.thumb = this.state.imgFileId
         }
         values.mobile = values.mobile.replace(/\s*/g, '');
-        values.key = this.state.codeKey;
+        values.captcha_key = this.state.codeKey
         
         if(this.state.audioBlod){
           let formData = new FormData();
@@ -328,11 +326,11 @@ class WriteSecre extends React.Component {
             <div className="code-wrap">
               <InputItem
                 placeholder=""
-                {...getFieldProps('val', {
-                  initialValue:'',
-                  // rules: [
-                  //   { required: true, message: '' },
-                  // ],
+                {...getFieldProps('captcha_val', {
+                  initialValue: this.state.code,
+                  rules: [
+                    { required: true, message: '请输入验证码' },
+                  ],
                 })}
               ></InputItem>
               <div className="">

@@ -4,6 +4,7 @@ import { createForm } from 'rc-form';
 import { queryUrlParam } from '@/utils/util'
 import { getSecret } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
+import { staticHost2ApiHost } from '@/utils/env'
 
 class CheckSecre extends React.Component {
   state = {
@@ -29,6 +30,8 @@ class CheckSecre extends React.Component {
       this.setState({
         check_status: 'on',
         secretInfo: res.data
+      },() => {
+        this.addAudioListenner()
       })
     })
   }
@@ -40,12 +43,7 @@ class CheckSecre extends React.Component {
         //   check_status: 'on'
         // })
         values.phone = values.phone.toString().replace(/\s*/g, '')
-        getSecret(values.phone).then(res => {
-          this.setState({
-            check_status: 'on',
-            secretInfo: res.data
-          })
-        })
+        this.getInfo(values.phone)
       } else {
         for (let x in errors) {
           let error = errors[x];
@@ -57,12 +55,19 @@ class CheckSecre extends React.Component {
   }
 
   componentDidMount() {
-    // let audio = document.getElementById('my_audio')
-    // audio.addEventListener('ended', () => {
-    //   this.setState({
-    //     audioStatus: 3
-    //   })
-    // }, false)
+    this.addAudioListenner()
+  }
+
+
+  addAudioListenner() {
+    let audio = document.getElementById('my_audio')
+    if(audio){
+      audio.addEventListener('ended', () => {
+        this.setState({
+          audioStatus: 3
+        })
+      }, false)
+    }
   }
 
   playAudio = () => {
@@ -110,7 +115,7 @@ class CheckSecre extends React.Component {
 
   render() {
     let { check_status, audioStatus, secretInfo, previewFlag, previewImgArr, previewImgIndex } = this.state;
-    let { created_at, audio, say_to_you, thumb, username } = secretInfo
+    let { created_at, say_to_you, rel_thumb, rel_audio, username } = secretInfo
     const { getFieldProps } = this.props.form;
     return (
       <div className="secret-check-wrap">
@@ -136,23 +141,27 @@ class CheckSecre extends React.Component {
               <Button className="search-btn" size="small" type="primary" onClick={this.onSubmit}>查询</Button>
             </form>
           </div> : <div className="result">
-              <div className="item">
-                <p className="label">语音消息：</p>
-                <p className="content light">
-                  <Button onClick={this.playAudio}>{(audioStatus == 0 || audioStatus == 2) ? '播放' : (audioStatus == 3 ? '重播' : '暂停')}</Button>
-                  <audio id="my_audio" src={audio}></audio>
-                </p>
-              </div>
+              {
+                rel_audio ? <div className="item">
+                  <p className="label">语音消息：</p>
+                  <p className="content light">
+                    <Button onClick={this.playAudio}>{(audioStatus == 0 || audioStatus == 2) ? '播放' : (audioStatus == 3 ? '重播' : '暂停')}</Button>
+                    <audio id="my_audio" src={staticHost2ApiHost() + rel_audio.path}></audio>
+                  </p>
+                </div> : null
+              }
               <div className="item">
                 <p className="label">我想对您说：</p>
                 <p className="content light">{say_to_you}</p>
               </div>
-              <div className="item">
-                <p className="label">永恒一刻：</p>
-                <p className="content">
-                  <img onClick={this.previewImg} src={thumb} />
-                </p>
-              </div>
+              {
+                rel_thumb ? <div className="item">
+                  <p className="label">永恒一刻：</p>
+                  <p className="content">
+                    <img onClick={this.previewImg} src={staticHost2ApiHost() + rel_thumb.path} />
+                  </p>
+                </div> : null
+              }
               <div className="item">
                 <p className="label">送卡人姓名/昵称：</p>
                 <p className="content">{username}</p>

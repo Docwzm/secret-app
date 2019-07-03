@@ -57,10 +57,35 @@ const getverifyCode = () => {
 }
 
 
+
+/**
+ * 获取验证码
+ */
+const getCodeUrl = () => {
+  return request({
+    url: '/captcha/api',
+    method: 'get'
+  })
+}
+
+
+
+/**
+ * 获取背景图片
+ */
+const getBgUrl = () => {
+  return request({
+    url: '/api/back-image',
+    method: 'get'
+  })
+}
+
+
 export {
   getSecret,
   saveSecret,
   uploadAudio,
   uploadImage,
-  getverifyCode
+  getCodeUrl,
+  getBgUrl
 }
