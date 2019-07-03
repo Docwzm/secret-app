@@ -47,9 +47,26 @@ const uploadImage = (file) => {
 }
 
 
+
+/**
+ * codeComit
+ */
+const commitCode = ({val,key}) => {
+  return request({
+    url: '/api/test',
+    method: 'get',
+    data: {
+      val,
+      key
+    }
+  })
+}
+
+
 export {
   getSecret,
   saveSecret,
   uploadAudio,
-  uploadImage
+  uploadImage,
+  commitCode
 }

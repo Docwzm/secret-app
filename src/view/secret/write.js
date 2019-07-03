@@ -147,8 +147,18 @@ class WriteSecre extends React.Component {
     }
   }
 
+  commitCode = () => {
+    
+  }
+
   onSubmit = () => {
     this.props.form.validateFields({ force: true }, (errors, values) => {
+      commitCode({
+        val:values.val,
+        key:this.state.codeKey
+      })
+
+      return false
       if (!errors) {
         if(this.state.imgFileId){
           values.thumb = this.state.imgFileId
