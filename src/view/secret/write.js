@@ -3,7 +3,7 @@ import { List, InputItem, Toast, Button, ImagePicker, TextareaItem } from 'antd-
 import { createForm } from 'rc-form';
 import Recorder from '@/utils/recorder';
 import { setLocal, getLocal, removeLocal } from '@/utils/util'
-import { saveSecret, uploadImage, uploadAudio } from '@/api'
+import { saveSecret, uploadImage, uploadAudio, getverifyCode } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 
 class WriteSecre extends React.Component {
@@ -17,7 +17,8 @@ class WriteSecre extends React.Component {
       audioStatus: 0,
       previewFlag:false,
       previewImgArr:[],
-      previewImgIndex:0
+      previewImgIndex:0,
+      codeUrl:'',
     }
   }
 
@@ -31,10 +32,31 @@ class WriteSecre extends React.Component {
       removeLocal('_secret_')
     }
     clearTimeout(this.timer)
+    this.getCodeUrl()
   }
 
   componentWillUnmount() {
     clearTimeout(this.timer)
+  }
+
+  getCodeUrl = () => {
+    if(!this.state.codeLock){
+      this.setState({
+        codeLock:true
+      },() => {
+        getverifyCode().then(res => {
+          this.setState({
+            codeLock:false,
+            codeUrl:res.img,
+            codeKey:res.key
+          })
+        }).catch(e => {
+          this.setState({
+            codeLock:false
+          })
+        })
+      })
+    }
   }
 
   startUserMedia(audio_context, stream, callback) {
@@ -154,6 +176,7 @@ class WriteSecre extends React.Component {
           values.thumb = this.state.imgFileId
         }
         values.mobile = values.mobile.replace(/\s*/g, '');
+        values.key = this.state.codeKey;
         
         if(this.state.audioBlod){
           let formData = new FormData();
@@ -295,7 +318,7 @@ class WriteSecre extends React.Component {
             ></InputItem>
           </List>
 
-          {/* <List className="no-bg" renderHeader={() => {
+          <List className="no-bg" renderHeader={() => {
             return (
               <div>
                 <p className="label">验证码：</p>
@@ -305,16 +328,18 @@ class WriteSecre extends React.Component {
             <div className="code-wrap">
               <InputItem
                 placeholder=""
-                {...getFieldProps('code', {
-                  initialValue: this.state.code,
+                {...getFieldProps('val', {
+                  initialValue:'',
                   // rules: [
                   //   { required: true, message: '' },
                   // ],
                 })}
               ></InputItem>
-              <div className="">1234</div>
+              <div className="">
+                <img className="codeImg" onClick={this.getCodeUrl} src={this.state.codeUrl}></img>
+              </div>
             </div>
-          </List> */}
+          </List>
 
           <Button className="fixed-bottom-btn" type="primary" onClick={this.onSubmit}>提交</Button>
         </form>

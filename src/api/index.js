@@ -46,10 +46,21 @@ const uploadImage = (file) => {
   })
 }
 
+/**
+ * 获取验证码 
+ */
+const getverifyCode = () => {
+  return request({
+    url: '/captcha/api/',
+    method: 'get'
+  })
+}
+
 
 export {
   getSecret,
   saveSecret,
   uploadAudio,
-  uploadImage
+  uploadImage,
+  getverifyCode
 }
