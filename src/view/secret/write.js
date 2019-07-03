@@ -3,7 +3,7 @@ import { List, InputItem, Toast, Button, ImagePicker, TextareaItem } from 'antd-
 import { createForm } from 'rc-form';
 import Recorder from '@/utils/recorder';
 import { setLocal, getLocal, removeLocal } from '@/utils/util'
-import { saveSecret, uploadImage, uploadAudio } from '@/api'
+import { saveSecret, uploadImage, uploadAudio, getCodeUrl } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 
 class WriteSecre extends React.Component {
@@ -31,10 +31,29 @@ class WriteSecre extends React.Component {
       removeLocal('_secret_')
     }
     clearTimeout(this.timer)
+    this.getCodeUrl()
   }
 
   componentWillUnmount() {
     clearTimeout(this.timer)
+  }
+
+  
+
+  getCodeUrl = () => {
+    if(!this.codeLock){
+      this.codeLock = true;
+      getCodeUrl().then(res => {
+        this.codeLock = false
+        this.setState({
+          codeUrl:res.img,
+          codeKey:res.key
+        })
+      }).catch(e => {
+        this.codeLock = false
+      })
+    }
+    
   }
 
   startUserMedia(audio_context, stream, callback) {
@@ -147,23 +166,14 @@ class WriteSecre extends React.Component {
     }
   }
 
-  commitCode = () => {
-    
-  }
-
   onSubmit = () => {
     this.props.form.validateFields({ force: true }, (errors, values) => {
-      commitCode({
-        val:values.val,
-        key:this.state.codeKey
-      })
-
-      return false
       if (!errors) {
         if(this.state.imgFileId){
           values.thumb = this.state.imgFileId
         }
         values.mobile = values.mobile.replace(/\s*/g, '');
+        values.captcha_key = this.state.codeKey
         
         if(this.state.audioBlod){
           let formData = new FormData();
@@ -305,7 +315,7 @@ class WriteSecre extends React.Component {
             ></InputItem>
           </List>
 
-          {/* <List className="no-bg" renderHeader={() => {
+          <List className="no-bg" renderHeader={() => {
             return (
               <div>
                 <p className="label">验证码：</p>
@@ -315,16 +325,18 @@ class WriteSecre extends React.Component {
             <div className="code-wrap">
               <InputItem
                 placeholder=""
-                {...getFieldProps('code', {
+                {...getFieldProps('captcha_val', {
                   initialValue: this.state.code,
-                  // rules: [
-                  //   { required: true, message: '' },
-                  // ],
+                  rules: [
+                    { required: true, message: '请输入验证码' },
+                  ],
                 })}
               ></InputItem>
-              <div className="">1234</div>
+              <div className="">
+                <img className="codeImg" onClick={this.getCodeUrl} src={this.state.codeUrl}></img>
+              </div>
             </div>
-          </List> */}
+          </List>
 
           <Button className="fixed-bottom-btn" type="primary" onClick={this.onSubmit}>提交</Button>
         </form>

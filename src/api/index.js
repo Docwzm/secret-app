@@ -49,16 +49,24 @@ const uploadImage = (file) => {
 
 
 /**
- * codeComit
+ * 获取验证码
  */
-const commitCode = ({val,key}) => {
+const getCodeUrl = () => {
   return request({
-    url: '/api/test',
-    method: 'get',
-    data: {
-      val,
-      key
-    }
+    url: '/captcha/api',
+    method: 'get'
+  })
+}
+
+
+
+/**
+ * 获取背景图片
+ */
+const getBgUrl = () => {
+  return request({
+    url: '/api/back-image',
+    method: 'get'
   })
 }
 
@@ -68,5 +76,6 @@ export {
   saveSecret,
   uploadAudio,
   uploadImage,
-  commitCode
+  getCodeUrl,
+  getBgUrl
 }
