@@ -4,18 +4,19 @@ const getSecret = (mobile) => {
   return request({
     url: '/api/speech/info-mobile',
     method: 'get',
-    params:{
+    params: {
       mobile
     }
   })
 }
 
 
-const saveSecret = (data) => {
+const saveSecret = (data, token) => {
   return request({
     url: '/api/speech',
     method: 'post',
-    data
+    data,
+    headers: { 'token': token },
   })
 }
 
@@ -41,7 +42,7 @@ const uploadImage = (file) => {
   return request({
     url: '/static/ueditor/1.4.3.3/php/controller.php?action=uploadimage',
     method: 'post',
-    headers: {'Content-Type':'multipart/form-data'},
+    headers: { 'Content-Type': 'multipart/form-data' },
     data: file
   })
 }
@@ -81,11 +82,26 @@ const getBgUrl = () => {
 }
 
 
+/**
+ * 获取token
+ */
+const getToken = (code) => {
+  return request({
+    url: '/api/back-image',
+    method: 'get',
+    params:{
+      code
+    }
+  })
+}
+
+
 export {
   getSecret,
   saveSecret,
   uploadAudio,
   uploadImage,
   getCodeUrl,
-  getBgUrl
+  getBgUrl,
+  getToken
 }

@@ -2,7 +2,7 @@ import React from 'react'
 import { List, InputItem, Toast, Button, ImagePicker, TextareaItem } from 'antd-mobile';
 import { createForm } from 'rc-form';
 import Recorder from '@/utils/recorder';
-import { setLocal, getLocal, removeLocal } from '@/utils/util'
+import { setLocal, getLocal, removeLocal,isWeiXin } from '@/utils/util'
 import { saveSecret, uploadImage, uploadAudio, getCodeUrl } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 
@@ -15,10 +15,10 @@ class WriteSecre extends React.Component {
       imgFileId: null,
       recorder: null,
       audioStatus: 0,
-      previewFlag:false,
-      previewImgArr:[],
-      previewImgIndex:0,
-      codeUrl:'',
+      previewFlag: false,
+      previewImgArr: [],
+      previewImgIndex: 0,
+      codeUrl: '',
     }
   }
 
@@ -39,22 +39,22 @@ class WriteSecre extends React.Component {
     clearTimeout(this.timer)
   }
 
-  
+
 
   getCodeUrl = () => {
-    if(!this.codeLock){
+    if (!this.codeLock) {
       this.codeLock = true;
       getCodeUrl().then(res => {
         this.codeLock = false
         this.setState({
-          codeUrl:res.img,
-          codeKey:res.key
+          codeUrl: res.img,
+          codeKey: res.key
         })
       }).catch(e => {
         this.codeLock = false
       })
     }
-    
+
   }
 
   startUserMedia(audio_context, stream, callback) {
@@ -136,15 +136,15 @@ class WriteSecre extends React.Component {
 
   previewImg = (fs) => {
     this.setState({
-      previewFlag:true,
-      previewImgArr:[fs[0].url],
-      previewImgIndex:0
+      previewFlag: true,
+      previewImgArr: [fs[0].url],
+      previewImgIndex: 0
     })
   }
 
   previewClose = () => {
     this.setState({
-      previewFlag:false
+      previewFlag: false
     })
   }
 
@@ -170,27 +170,30 @@ class WriteSecre extends React.Component {
   onSubmit = () => {
     this.props.form.validateFields({ force: true }, (errors, values) => {
       if (!errors) {
-        if(this.state.imgFileId){
+        if (this.state.imgFileId) {
           values.thumb = this.state.imgFileId
         }
         values.mobile = values.mobile.replace(/\s*/g, '');
         values.captcha_key = this.state.codeKey
-        
-        if(this.state.audioBlod){
+
+        let func = (values) => {
+          let token = getLocal('_secret_wx_token');
+          saveSecret(values, token).then(res => {
+            this.props.history.push(`/powerionics/check?phone=${values.mobile}`)
+          })
+        }
+
+        if (this.state.audioBlod) {
           let formData = new FormData();
           formData.append('upfile', this.state.audioBlod, 'test.wav')
           uploadAudio(formData).then(data => {
             values.audio = data.id
-            saveSecret(values).then(res => {
-              this.props.history.push(`/secret/check?phone=${values.mobile}`)
-            })
+            func(values)
           })
-        }else{
-          saveSecret(values).then(res => {
-            this.props.history.push(`/secret/check?phone=${values.mobile}`)
-          })
+        } else {
+          func(values)
         }
-        
+
       } else {
         for (let x in errors) {
           let error = errors[x];
@@ -208,7 +211,7 @@ class WriteSecre extends React.Component {
     return (
       <div>
         {
-          previewFlag?<WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex}/>:null
+          previewFlag ? <WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex} /> : null
         }
         <form className="secret-wirte-form">
           <List className="no-bg" renderHeader={() => {
