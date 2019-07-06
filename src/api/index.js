@@ -46,16 +46,6 @@ const uploadImage = (file) => {
   })
 }
 
-/**
- * 获取验证码 
- */
-const getverifyCode = () => {
-  return request({
-    url: '/captcha/api/',
-    method: 'get'
-  })
-}
-
 
 
 /**
@@ -79,6 +69,9 @@ const getBgUrl = () => {
     method: 'get'
   })
 }
+
+
+
 
 
 export {
