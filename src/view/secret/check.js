@@ -102,7 +102,7 @@ class CheckSecre extends React.Component {
   previewImg = () => {
     this.setState({
       previewFlag: true,
-      previewImgArr: [this.state.secretInfo.thumb],
+      previewImgArr: [staticHost2ApiHost() +this.state.secretInfo.rel_thumb.path],
       previewImgIndex: 0
     })
   }
@@ -142,10 +142,10 @@ class CheckSecre extends React.Component {
             </form>
           </div> : <div className="result">
               {
-                rel_audio ? <div className="item">
+                rel_audio ? <div className="item audio-item">
                   <p className="label">语音消息：</p>
                   <p className="content light">
-                    <Button onClick={this.playAudio}>{(audioStatus == 0 || audioStatus == 2) ? '播放' : (audioStatus == 3 ? '重播' : '暂停')}</Button>
+                    <Button onClick={this.playAudio} className={(audioStatus == 1 ? 'start':'end')}></Button>
                     <audio id="my_audio" src={staticHost2ApiHost() + rel_audio.path}></audio>
                   </p>
                 </div> : null

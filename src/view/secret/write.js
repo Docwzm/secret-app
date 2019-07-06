@@ -2,7 +2,7 @@ import React from 'react'
 import { List, InputItem, Toast, Button, ImagePicker, TextareaItem } from 'antd-mobile';
 import { createForm } from 'rc-form';
 import Recorder from '@/utils/recorder';
-import { setLocal, getLocal, removeLocal } from '@/utils/util'
+import { setLocal, getLocal, removeLocal, isWeiXin } from '@/utils/util'
 import { saveSecret, uploadImage, uploadAudio, getCodeUrl } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 
@@ -15,10 +15,11 @@ class WriteSecre extends React.Component {
       imgFileId: null,
       recorder: null,
       audioStatus: 0,
-      previewFlag:false,
-      previewImgArr:[],
-      previewImgIndex:0,
-      codeUrl:'',
+      audioPlayStatus:0,
+      previewFlag: false,
+      previewImgArr: [],
+      previewImgIndex: 0,
+      codeUrl: '',
     }
   }
 
@@ -39,22 +40,22 @@ class WriteSecre extends React.Component {
     clearTimeout(this.timer)
   }
 
-  
+
 
   getCodeUrl = () => {
-    if(!this.codeLock){
+    if (!this.codeLock) {
       this.codeLock = true;
       getCodeUrl().then(res => {
         this.codeLock = false
         this.setState({
-          codeUrl:res.img,
-          codeKey:res.key
+          codeUrl: res.img,
+          codeKey: res.key
         })
       }).catch(e => {
         this.codeLock = false
       })
     }
-    
+
   }
 
   startUserMedia(audio_context, stream, callback) {
@@ -136,15 +137,15 @@ class WriteSecre extends React.Component {
 
   previewImg = (fs) => {
     this.setState({
-      previewFlag:true,
-      previewImgArr:[fs[0].url],
-      previewImgIndex:0
+      previewFlag: true,
+      previewImgArr: [fs[0].url],
+      previewImgIndex: 0
     })
   }
 
   previewClose = () => {
     this.setState({
-      previewFlag:false
+      previewFlag: false
     })
   }
 
@@ -170,27 +171,32 @@ class WriteSecre extends React.Component {
   onSubmit = () => {
     this.props.form.validateFields({ force: true }, (errors, values) => {
       if (!errors) {
-        if(this.state.imgFileId){
+        let token = getLocal('_secret_wx_token');
+        if (this.state.imgFileId) {
           values.thumb = this.state.imgFileId
         }
         values.mobile = values.mobile.replace(/\s*/g, '');
         values.captcha_key = this.state.codeKey
-        
-        if(this.state.audioBlod){
+        if(token){
+          values.wechat_token = token
+        }
+        let func = (values) => {
+          saveSecret(values).then(res => {
+            this.props.history.push(`/powerionics/check?phone=${values.mobile}`)
+          })
+        }
+
+        if (this.state.audioBlod) {
           let formData = new FormData();
           formData.append('upfile', this.state.audioBlod, 'test.wav')
           uploadAudio(formData).then(data => {
             values.audio = data.id
-            saveSecret(values).then(res => {
-              this.props.history.push(`/secret/check?phone=${values.mobile}`)
-            })
+            func(values)
           })
-        }else{
-          saveSecret(values).then(res => {
-            this.props.history.push(`/secret/check?phone=${values.mobile}`)
-          })
+        } else {
+          func(values)
         }
-        
+
       } else {
         for (let x in errors) {
           let error = errors[x];
@@ -201,17 +207,58 @@ class WriteSecre extends React.Component {
     });
   }
 
+  
+  addAudioListenner() {
+    let audio = document.getElementById('_audio')
+    if(audio){
+      audio.addEventListener('ended', () => {
+        this.setState({
+          audioPlayStatus: 3
+        })
+      }, false)
+    }
+  }
+
+
+  playAudio = () => {
+    this.addAudioListenner()
+    let audio = document.getElementById('_audio')
+    audio.volume = 1;
+    let { audioPlayStatus } = this.state
+    if (audioPlayStatus == 0) {
+      audio.play()
+      this.setState({
+        audioPlayStatus: 1
+      })
+    } else if (audioPlayStatus == 1) {
+      this.setState({
+        audioPlayStatus: 2
+      })
+      audio.pause()
+    } else if (audioPlayStatus == 2) {
+      audio.play()
+      this.setState({
+        audioPlayStatus: 1
+      })
+    } else if (audioPlayStatus == 3) {
+      audio.play()
+      this.setState({
+        audioPlayStatus: 1
+      })
+    }
+  }
+
   render() {
-    let { files, audioStatus, audioUrl, previewFlag, previewImgArr, previewImgIndex } = this.state
+    let { files, audioStatus, audioUrl, previewFlag, previewImgArr, previewImgIndex, audioPlayStatus } = this.state
     const { getFieldProps, getFieldError } = this.props.form;
 
     return (
       <div>
         {
-          previewFlag?<WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex}/>:null
+          previewFlag ? <WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex} /> : null
         }
         <form className="secret-wirte-form">
-          <List className="no-bg" renderHeader={() => {
+          <List className="no-bg flex-wrap" renderHeader={() => {
             return (
               <div>
                 <p className="label">录制语音：</p>
@@ -222,7 +269,10 @@ class WriteSecre extends React.Component {
             <div className="audio-wrap">
               <Button size="small" type="primary" onClick={this.record}>{audioStatus == 0 ? '开始' : (audioStatus == 1 ? '结束' : '重录')}</Button>
               {
-                audioUrl ? <audio controls src={audioUrl}></audio> : null
+                audioUrl ? <span className={audioPlayStatus == 1 ? 'start' : 'end'} onClick={this.playAudio}></span> : null
+              }
+              {
+                audioUrl ? <audio id="_audio" src={audioUrl}></audio> : null
               }
             </div>
           </List>
