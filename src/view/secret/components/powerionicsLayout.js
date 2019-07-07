@@ -15,7 +15,7 @@ export default class extends React.Component {
     }
     componentWillMount() {
         let bgUrl = queryUrlParam(this.props.history.location.search, 'bg');
-
+        
         if (this.props.location.pathname != '/powerionics/check') {
             if (isWeiXin()) {
                 //微信浏览器需要跳转授权获取code
