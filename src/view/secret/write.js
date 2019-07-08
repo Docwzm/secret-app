@@ -172,6 +172,8 @@ class WriteSecre extends React.Component {
     this.props.form.validateFields({ force: true }, (errors, values) => {
       if (!errors) {
         let token = getLocal('_secret_wx_token');
+        console.log(token)
+        console.log('token//////////////////////')
         if (this.state.imgFileId) {
           values.thumb = this.state.imgFileId
         }

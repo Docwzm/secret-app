@@ -25,6 +25,8 @@ export default class extends React.Component {
                         getToken(code).then(res => {
                             token = res.data
                             setLocal('_secret_wx_token', token)
+                            console.log(token)
+                            console.log('........token')
                             setTimeout(() => {
                                 this.props.history.push('/powerionics/write')
                             }, 100)
