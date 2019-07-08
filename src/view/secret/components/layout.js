@@ -17,7 +17,6 @@ export default class extends React.Component {
             if (isWeiXin()) {
                 //微信浏览器需要跳转授权获取code
                 let token = getLocal('_secret_wx_token')
-                console.log(token)
                 if (!token) {
                     if (!code) {
                         this.getAuth()
