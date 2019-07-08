@@ -17,7 +17,7 @@ export default class extends React.Component {
             if (isWeiXin()) {
                 //微信浏览器需要跳转授权获取code
                 let token = getLocal('_secret_wx_token')
-                if (!token) {
+                // if (!token) {
                     if (!code) {
                         this.getAuth()
                         return;
@@ -25,16 +25,14 @@ export default class extends React.Component {
                         getToken(code).then(res => {
                             token = res.data
                             setLocal('_secret_wx_token', token)
-                            console.log(token)
-                            console.log('........token')
                             setTimeout(() => {
                                 this.props.history.push('/powerionics/write')
                             }, 100)
                         })
                     }
-                } else {
-                    this.props.history.push('/powerionics/write')
-                }
+                // } else {
+                //     this.props.history.push('/powerionics/write')
+                // }
             } else {
                 this.props.history.push('/powerionics/write')
             }

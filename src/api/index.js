@@ -11,12 +11,11 @@ const getSecret = (mobile) => {
 }
 
 
-const saveSecret = (data, token) => {
+const saveSecret = (data) => {
   return request({
     url: '/api/speech',
     method: 'post',
-    data,
-    headers: { 'token': token },
+    data
   })
 }
 
