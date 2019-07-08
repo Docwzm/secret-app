@@ -176,6 +176,8 @@ class WriteSecre extends React.Component {
         console.log('token//////////////////////')
         if (this.state.imgFileId) {
           values.thumb = this.state.imgFileId
+        }else{
+          values.thumb = 0
         }
         values.mobile = values.mobile.replace(/\s*/g, '');
         values.captcha_key = this.state.codeKey
@@ -196,6 +198,7 @@ class WriteSecre extends React.Component {
             func(values)
           })
         } else {
+          values.audio = 0
           func(values)
         }
 
