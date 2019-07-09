@@ -14,14 +14,14 @@ export default class extends React.Component {
         }
     }
     componentWillMount() {
-        let bgUrl = queryUrlParam(this.props.history.location.search, 'bg');
+        // let bgUrl = queryUrlParam(this.props.history.location.search, 'bg');
         
-        if (bgUrl) {
-            this.setState({
-                bgUrl
-            })
-        } else {
-            this.getBgUrl();
+        // if (bgUrl) {
+        //     this.setState({
+        //         bgUrl
+        //     })
+        // } else {
+        //     this.getBgUrl();
             if (this.props.location.pathname != '/powerionics/check') {
                 if (isWeiXin()) {
                     //微信浏览器需要跳转授权获取code
@@ -32,28 +32,18 @@ export default class extends React.Component {
                     }
                 }
             }
-        }
+        // }
 
     }
 
-    getBgUrl = () => {
-        getBgUrl().then(res => {
-            let data = res.data;
-            if (data && data.length != 0) {
-                let bgUrl = staticHost2ApiHost() + data[0].rel_image.path;
-                this.setState({
-                    bgUrl
-                })
-            }
-        })
-    }
+   
     render() {
-        const { bgUrl } = this.state
-        const bgStyle = {
-            backgroundImage: `url(${bgUrl})`,
-        }
+        // const { bgUrl } = this.state
+        // const bgStyle = {
+        //     backgroundImage: `url(${bgUrl})`,
+        // }
         return (
-            bgUrl ? <div id="secret-wrap" style={bgStyle}>
+            <div id="secret-wrap">
                 {
                     this.props.routes.map((route, index) => {
                         return <Route key={index} exact={route.exact} path={route.path} render={props => (
@@ -61,7 +51,7 @@ export default class extends React.Component {
                         )} ></Route>
                     })
                 }
-            </div> : null
+            </div>
         )
     }
 }

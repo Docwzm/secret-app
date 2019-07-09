@@ -84,12 +84,17 @@ module.exports = function(proxy, allowedHost) {
     proxy,
     // proxy: {
     //   "/api/*": {
-    //     "target": "http://shequgouvip.com:18003",
+    //     "target": "http://meinvbingyue.vipgz1.idcfengye.com",
     //     "changeOrigin": true,
     //     "secure": false
     //   },
     //   "/static/*": {
-    //     "target": "http://shequgouvip.com:18003",
+    //     "target": "http://meinvbingyue.vipgz1.idcfengye.com",
+    //     "changeOrigin": true,
+    //     "secure": false
+    //   },
+    //   "/captcha/*": {
+    //     "target": "http://meinvbingyue.vipgz1.idcfengye.com",
     //     "changeOrigin": true,
     //     "secure": false
     //   }
