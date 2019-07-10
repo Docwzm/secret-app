@@ -2,9 +2,10 @@ import React from 'react'
 import { InputItem, Toast, Button } from 'antd-mobile';
 import { createForm } from 'rc-form';
 import { queryUrlParam } from '@/utils/util'
-import { getSecret } from '@/api'
+import { getSecret, getBgUrl } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 import { staticHost2ApiHost } from '@/utils/env'
+import PreviewForm from './components/previewForm'
 
 class CheckSecre extends React.Component {
   state = {
@@ -14,7 +15,8 @@ class CheckSecre extends React.Component {
     secretInfo: {},
     previewFlag: false,
     previewImgArr: [],
-    previewImgIndex: 0
+    previewImgIndex: 0,
+    bgUrl: ''
   }
 
   componentWillMount() {
@@ -22,15 +24,27 @@ class CheckSecre extends React.Component {
     if (phone) {
       this.getInfo(phone)
     }
+    this.getBgUrl()
   }
 
+  getBgUrl = () => {
+    getBgUrl().then(res => {
+      let data = res.data;
+      if (data && data.length != 0) {
+        let bgUrl = staticHost2ApiHost() + data[0].rel_image.path;
+        this.setState({
+          bgUrl
+        })
+      }
+    })
+  }
 
   getInfo(phone) {
     getSecret(phone).then(res => {
       this.setState({
         check_status: 'on',
         secretInfo: res.data
-      },() => {
+      }, () => {
         this.addAudioListenner()
       })
     })
@@ -54,55 +68,11 @@ class CheckSecre extends React.Component {
     });
   }
 
-  componentDidMount() {
-    this.addAudioListenner()
-  }
 
-
-  addAudioListenner() {
-    let audio = document.getElementById('my_audio')
-    if(audio){
-      audio.addEventListener('ended', () => {
-        this.setState({
-          audioStatus: 3
-        })
-      }, false)
-    }
-  }
-
-  playAudio = () => {
-    let audio = document.getElementById('my_audio')
-    audio.volume = 1;
-    let { audioStatus } = this.state
-    if (audioStatus == 0) {
-      audio.play()
-      this.setState({
-        audioStatus: 1
-      })
-    } else if (audioStatus == 1) {
-      this.setState({
-        audioStatus: 2
-      })
-      audio.pause()
-    } else if (audioStatus == 2) {
-      audio.play()
-      this.setState({
-        audioStatus: 1
-      })
-    } else if (audioStatus == 3) {
-      audio.play()
-      this.setState({
-        audioStatus: 1
-      })
-    }
-
-  }
-
-
-  previewImg = () => {
+  previewImg = (url) => {
     this.setState({
       previewFlag: true,
-      previewImgArr: [staticHost2ApiHost() +this.state.secretInfo.rel_thumb.path],
+      previewImgArr: [url],
       previewImgIndex: 0
     })
   }
@@ -113,9 +83,12 @@ class CheckSecre extends React.Component {
     })
   }
 
+  gotoHelpCenter = () => {
+    this.props.history.push('/helpCenter')
+  }
+
   render() {
-    let { check_status, audioStatus, secretInfo, previewFlag, previewImgArr, previewImgIndex } = this.state;
-    let { created_at, say_to_you, rel_thumb, rel_audio, username } = secretInfo
+    let { check_status, secretInfo, previewFlag, previewImgArr, previewImgIndex, bgUrl } = this.state;
     const { getFieldProps } = this.props.form;
     return (
       <div className="secret-check-wrap">
@@ -124,54 +97,33 @@ class CheckSecre extends React.Component {
         }
         {
           check_status === 'off' ? <div className="secret-check-form-wrap">
-            <div className="tip">
-              <p>您的朋友随礼物还给您留了一段私言密语，您的手机号是查询留言的密码！</p>
-              <p>请输入您的手机号码查看TA为您留下的私言密语......</p>
+            <div className="top"></div>
+            <div className="main">
+              <div className="tip">
+                <p>您的朋友随礼物还给您留了一段私言密语，您的手机号是查询留言的密码！</p>
+                <p>请输入您的手机号码查看TA为您留下的私言密语......</p>
+              </div>
+              <form className="secret-check-form">
+                <div className="label">输入你的手机号码</div>
+                <InputItem
+                  type="phone"
+                  {...getFieldProps('phone', {
+                    initialValue: this.state.phone,
+                    rules: [
+                      { required: true, message: '请输入手机号码' },
+                    ],
+                  })}
+                ></InputItem>
+                <Button className="search-btn" size="small" onClick={this.onSubmit}>查看</Button>
+              </form>
             </div>
-            <form className="secret-check-form">
-              <InputItem
-                type="phone"
-                {...getFieldProps('phone', {
-                  initialValue: this.state.phone,
-                  rules: [
-                    { required: true, message: '请输入手机号码' },
-                  ],
-                })}
-              >手机号码：</InputItem>
-              <Button className="search-btn" size="small" type="primary" onClick={this.onSubmit}>查询</Button>
-            </form>
           </div> : <div className="result">
-              {
-                rel_audio ? <div className="item audio-item">
-                  <p className="label">语音消息：</p>
-                  <p className="content light">
-                    <Button onClick={this.playAudio} className={(audioStatus == 1 ? 'start':'end')}></Button>
-                    <audio id="my_audio" src={staticHost2ApiHost() + rel_audio.path}></audio>
-                  </p>
-                </div> : null
-              }
-              <div className="item">
-                <p className="label">我想对您说：</p>
-                <p className="content light">{say_to_you}</p>
+              <div className="top"><img src={bgUrl}></img></div>
+              <PreviewForm previewImg={this.previewImg} formData={secretInfo}></PreviewForm>
+              <div className="fixed-bottom">
+                <a className="url-btn" href="//powerionics.jd.com" target="_blank">我也要挑选礼物送TA</a>
+                <span onClick={this.gotoHelpCenter} className="help-center">帮助中心</span>
               </div>
-              {
-                rel_thumb ? <div className="item">
-                  <p className="label">永恒一刻：</p>
-                  <p className="content">
-                    <img onClick={this.previewImg} src={staticHost2ApiHost() + rel_thumb.path} />
-                  </p>
-                </div> : null
-              }
-              <div className="item">
-                <p className="label">送卡人姓名/昵称：</p>
-                <p className="content">{username}</p>
-              </div>
-              <div className="item">
-                <p className="label">提交时间：</p>
-                <p className="content">{created_at}</p>
-              </div>
-
-              <a className="url-btn" href="//www.baidu.com" target="_blank">我也要挑选礼物送TA</a>
             </div>
         }
       </div>

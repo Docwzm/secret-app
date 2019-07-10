@@ -7,7 +7,7 @@
         if(clientWidth>800){
           clientWidth = 800
         }
-        var rem = clientWidth / 750 * 12
+        var rem = clientWidth / 750 * 16
         docEl.style.fontSize = rem + 'px'
       }
     if (!doc.addEventListener) return

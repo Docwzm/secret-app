@@ -5,6 +5,7 @@ import routes from './routes/index'
 import * as serviceWorker from './serviceWorker';
 import '@/utils';
 import '@/assets/styles/index.scss'
+import 'lib-flexible/flexible'
 
 ReactDom.render((
     <Router>

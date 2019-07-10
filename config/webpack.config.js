@@ -102,20 +102,9 @@ module.exports = function(webpackEnv) {
             // so that it honors browserslist config in package.json
             // which in turn let's users customize the target behavior as per their needs.
             postcssNormalize(),
+            require('postcss-px2rem')({remUnit: 75})
           ],
           sourceMap: isEnvProduction && shouldUseSourceMap,
-        }
-      },
-      {
-        loader:require.resolve('webpack-px-to-rem'),
-        query:{
-          // 1rem=npx 默认为 10
-          basePx:32,
-          // 只会转换大于min的px 默认为0
-          // 因为很小的px（比如border的1px）转换为rem后在很小的设备上结果会小于1px，有的设备就会不显示
-          min:1,
-          // 转换后的rem值保留的小数点后位数 默认为3
-          floatWidth:2
         }
       }
     ].filter(Boolean);
