@@ -73,7 +73,7 @@ class WriteSecre extends React.Component {
 
     let func = (values) => {
       saveSecret(values).then(res => {
-        this.props.history.push(`/powerionics/check?phone=${values.mobile}`)
+        Toast.success('提交成功')
       }).catch(e => {
         removeLocal('_secret_wx_token')
         setTimeout(() => {
@@ -97,7 +97,7 @@ class WriteSecre extends React.Component {
 
   previewResult = () => {
     this.writeForm.props.form.validateFields({ force: true }, (errors, values) => {
-      if (errors) {
+      if (!errors) {
         this.setState({
           resultPreviewFlag: true,
           formData: Object.assign({}, this.state.formData, { ...this.writeForm.props.form.getFieldsValue(), created_at: parseTime(new Date()), audioUrl:this.state.audioUrl })

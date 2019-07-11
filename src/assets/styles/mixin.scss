@@ -1,7 +1,15 @@
-/**
-* 0.5px边框
-* 20171114 @lzsheng
-*/
+$mColor:#d2b78c;
+$mColor2:#666;
+$bgColor:#f9f6f1;
+$labelFontSize:30px;
+$tipFontSize:24px;
+
+//音频背景
+@mixin audio_bg(){
+    background:url('../images/rec_bg.jpg') no-repeat;
+    background-size:100% 100%;
+}
+
 
 @mixin border_bottom_after( $color:#d9d9d9 ){
     position: relative;

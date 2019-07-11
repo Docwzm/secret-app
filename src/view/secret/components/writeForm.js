@@ -55,7 +55,7 @@ class WriteForm extends React.Component {
     record = () => {
         let { audioStatus, recorder } = this.state;
         clearTimeout(this.timer)
-        // console.log(recorder)
+        console.log(recorder)
         // return false;
         const func = () => {
             let { audioStatus, recorder } = this.state;
