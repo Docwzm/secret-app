@@ -1,6 +1,6 @@
 import React from 'react'
 import { Toast, Button } from 'antd-mobile';
-import { getLocal, removeLocal, parseTime } from '@/utils/util'
+import { getLocal, removeLocal, parseTime,queryUrlParam } from '@/utils/util'
 import { saveSecret, uploadAudio, getCodeUrl, getBgUrl } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 import { staticHost2ApiHost } from '@/utils/env'
@@ -17,13 +17,21 @@ class WriteSecre extends React.Component {
       previewImgIndex: 0,
       bgUrl: '',
       formData: {},
-      audioBlod:null,
-      audioUrl:''
+      audioBlod: null,
+      audioUrl: ''
     }
   }
 
   componentWillMount() {
-    this.getBgUrl()
+    let bgUrl = queryUrlParam(this.props.history.location.search, 'bg');
+    if (bgUrl) {
+      this.setState({
+        bgUrl
+      })
+    }else{
+      this.getBgUrl()
+    }
+    
     this.getCodeUrl()
   }
 
@@ -100,7 +108,7 @@ class WriteSecre extends React.Component {
       if (!errors) {
         this.setState({
           resultPreviewFlag: true,
-          formData: Object.assign({}, this.state.formData, { ...this.writeForm.props.form.getFieldsValue(), created_at: parseTime(new Date()), audioUrl:this.state.audioUrl })
+          formData: Object.assign({}, this.state.formData, { ...this.writeForm.props.form.getFieldsValue(), created_at: parseTime(new Date()), audioUrl: this.state.audioUrl })
         })
       } else {
         for (let x in errors) {
@@ -148,6 +156,8 @@ class WriteSecre extends React.Component {
     this.setState({
       audioBlod: blob,
       audioUrl: URL.createObjectURL(blob)
+    },() => {
+      this.previewResult()
     })
   }
 
@@ -170,7 +180,7 @@ class WriteSecre extends React.Component {
             resultPreviewFlag ? <div className="wrap">
               <Button onClick={this.returnEdit}>返回修改</Button>
               <Button onClick={this.formSubmit}>确认提交</Button>
-            </div> : <Button onClick={this.previewResult}>预览</Button>
+            </div>:null
           }
         </div>
       </div>

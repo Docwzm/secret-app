@@ -14,14 +14,11 @@ export default class extends React.Component {
         }
     }
     componentWillMount() {
-        // let bgUrl = queryUrlParam(this.props.history.location.search, 'bg');
+        let bgUrl = queryUrlParam(this.props.history.location.search, 'bg');
         
-        // if (bgUrl) {
-        //     this.setState({
-        //         bgUrl
-        //     })
-        // } else {
-        //     this.getBgUrl();
+        if (bgUrl) {
+            
+        } else {
             if (this.props.location.pathname != '/powerionics/check') {
                 if (isWeiXin()) {
                     //微信浏览器需要跳转授权获取code
@@ -32,7 +29,7 @@ export default class extends React.Component {
                     }
                 }
             }
-        // }
+        }
 
     }
 
