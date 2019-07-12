@@ -41,11 +41,16 @@ class CheckSecre extends React.Component {
 
   getInfo(phone) {
     getSecret(phone).then(res => {
+      let data = res.data;
+      if(data.rel_audio){
+        data.audioUrl = staticHost2ApiHost() + data.rel_audio.path
+      }
+      if(data.rel_thumb){
+        data.files = [{url:staticHost2ApiHost() + data.rel_thumb.path}]
+      }
       this.setState({
         check_status: 'on',
-        secretInfo: res.data
-      }, () => {
-        this.addAudioListenner()
+        secretInfo: data
       })
     })
   }
