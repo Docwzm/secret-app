@@ -153,12 +153,16 @@ class WriteSecre extends React.Component {
   }
 
   setAudioUrl = (blob) => {
-    this.setState({
-      audioBlod: blob,
-      audioUrl: URL.createObjectURL(blob)
-    },() => {
+    if(blob){
+      this.setState({
+        audioBlod: blob,
+        audioUrl: URL.createObjectURL(blob)
+      },() => {
+        this.previewResult()
+      })
+    }else{
       this.previewResult()
-    })
+    }
   }
 
   render() {

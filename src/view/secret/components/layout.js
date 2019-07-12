@@ -43,7 +43,7 @@ export default class extends React.Component {
     getAuth() {
         let appid = 'wx3edc25d22618f5e9';
         // appid = 'wx77dc39692260dd64'
-        let redirectUri = encodeURIComponent('https://symy.powerionics.com/secret/');
+        let redirectUri = encodeURIComponent('https://symy.powerionics.cn/secret/');
         // let paramsCode = queryUrlParam(window.location.search, 'code');
         // let code = sessionStorage.getItem('code')
         // if (!paramsCode && !code) {

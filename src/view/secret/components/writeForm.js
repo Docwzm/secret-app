@@ -65,13 +65,20 @@ class WriteForm extends React.Component {
 
     previewResult = () => {
         let { recorder } = this.state;
-        recorder.exportWAV((blob) => {
-            this.props.setAudioUrl(blob)
+        if(recorder){
+            recorder.exportWAV((blob) => {
+                this.props.setAudioUrl(blob)
+                this.setState({
+                    audioStatus: 0
+                })
+            });
+            recorder.clear();
+        }else{
+            this.props.setAudioUrl()
             this.setState({
                 audioStatus: 0
             })
-        });
-        recorder.clear();
+        }
     }
 
     record = () => {
