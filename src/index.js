@@ -1,21 +1,23 @@
 import React from 'react'
 import ReactDom from 'react-dom'
-import { HashRouter as Router, Route } from 'react-router-dom'
+import { HashRouter as Router, Route,Redirect } from 'react-router-dom'
 import routes from './routes/index'
 import * as serviceWorker from './serviceWorker';
-import '@/utils';
+import { initWxConfig } from '@/utils/wx';
 import '@/assets/styles/index.scss'
 import 'lib-flexible/flexible'
 
+initWxConfig()
+
 ReactDom.render((
     <Router>
-            {
-                routes.map((route, index) => {
-                    return <Route key={index} exact={route.exact} path={route.path} render={props => (
-                        <route.component {...props} routes={route.routes} />
-                    )}></Route>
-                })
-            }
+        {
+            routes.map((route, index) => {
+                return <Route key={index} exact={route.exact} path={route.path} render={props => (
+                    route.redirect? <Redirect to={route.redirect}/> :<route.component {...props} routes={route.routes} />
+                )}></Route>
+            })
+        }
     </Router>
 ), document.querySelector('#root'))
 

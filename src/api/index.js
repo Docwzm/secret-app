@@ -84,6 +84,16 @@ const getToken = (code) => {
   })
 }
 
+const getWxConfig = (url) => {
+  return request({
+    url: '/api/wechat-jssdk-config',
+    method: 'get',
+    params:{
+      url
+    }
+  })
+}
+
 
 export {
   getSecret,
@@ -92,5 +102,6 @@ export {
   uploadImage,
   getCodeUrl,
   getBgUrl,
-  getToken
+  getToken,
+  getWxConfig
 }

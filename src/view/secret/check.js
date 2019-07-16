@@ -1,12 +1,12 @@
 import React from 'react'
 import { InputItem, Toast, Button } from 'antd-mobile';
 import { createForm } from 'rc-form';
-import { queryUrlParam } from '@/utils/util'
 import { getSecret, getBgUrl } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 import { staticHost2ApiHost } from '@/utils/env'
 import PreviewForm from './components/previewForm'
-
+import { isWeiXin } from '../../utils/util';
+const wx = window.wx
 class CheckSecre extends React.Component {
   state = {
     check_status: 'off',
@@ -20,10 +20,6 @@ class CheckSecre extends React.Component {
   }
 
   componentWillMount() {
-    let phone = queryUrlParam(this.props.history.location.search, 'phone')
-    if (phone) {
-      this.getInfo(phone)
-    }
     this.getBgUrl()
   }
 
@@ -42,16 +38,39 @@ class CheckSecre extends React.Component {
   getInfo(phone) {
     getSecret(phone).then(res => {
       let data = res.data;
-      if(data.rel_audio){
+      if (data.rel_audio) {
         data.audioUrl = staticHost2ApiHost() + data.rel_audio.path
       }
-      if(data.rel_thumb){
-        data.files = [{url:staticHost2ApiHost() + data.rel_thumb.path}]
+      if (data.rel_thumb) {
+        data.files = [{ url: staticHost2ApiHost() + data.rel_thumb.path }]
       }
-      this.setState({
-        check_status: 'on',
-        secretInfo: data
-      })
+      if(isWeiXin()){
+        if (data.wx_audio) {
+          wx.downloadVoice({
+            serverId: data.wx_audio, // 需要下载的音频的服务器端ID，由uploadVoice接口获得
+            isShowProgressTips: 1, // 默认为1，显示进度提示
+            success: (res) => {
+              data.wxAudioLocalId = res.localId
+              this.setState({
+                check_status: 'on',
+                secretInfo: data
+              })
+            },
+            fail: (e) => {
+            }
+          });
+        } else {
+          this.setState({
+            check_status: 'on',
+            secretInfo: data
+          })
+        }
+      }else{
+        this.setState({
+          check_status: 'on',
+          secretInfo: data
+        })
+      }
     })
   }
 

@@ -1,12 +1,12 @@
 import React from 'react'
 import { Toast, Button } from 'antd-mobile';
-import { getLocal, removeLocal, parseTime,queryUrlParam } from '@/utils/util'
+import { getLocal, removeLocal, parseTime, queryUrlParam, isWeiXin } from '@/utils/util'
 import { saveSecret, uploadAudio, getCodeUrl, getBgUrl } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 import { staticHost2ApiHost } from '@/utils/env'
 import WriteForm from './components/writeForm'
 import PreviewForm from './components/previewForm'
-
+const wx = window.wx;
 class WriteSecre extends React.Component {
   constructor() {
     super()
@@ -28,10 +28,10 @@ class WriteSecre extends React.Component {
       this.setState({
         bgUrl
       })
-    }else{
+    } else {
       this.getBgUrl()
     }
-    
+
     this.getCodeUrl()
   }
 
@@ -90,17 +90,36 @@ class WriteSecre extends React.Component {
       })
     }
 
-    if (this.state.audioBlod) {
-      let formData = new FormData();
-      formData.append('upfile', this.state.audioBlod, 'test.wav')
-      uploadAudio(formData).then(data => {
-        values.audio = data.id
+    if (isWeiXin()) {
+      if (this.state.wxAudioLocalId) {
+        wx.uploadVoice({
+          localId: this.state.wxAudioLocalId, // 需要上传的音频的本地ID，由stopRecord接口获得
+          isShowProgressTips: 1, // 默认为1，显示进度提示
+          success: (res) => {
+            values.wx_audio = res.serverId; // 返回音频的服务器端ID
+            values.audio = 0
+            func(values)
+          }
+        });
+      } else {
+        values.audio = 0
         func(values)
-      })
+      }
     } else {
-      values.audio = 0
-      func(values)
+      if (this.state.audioBlod) {
+        let formData = new FormData();
+        formData.append('upfile', this.state.audioBlod, 'test.wav')
+        uploadAudio(formData).then(data => {
+          values.audio = data.id
+          func(values)
+        })
+      } else {
+        values.audio = 0
+        func(values)
+      }
     }
+
+
   }
 
   previewResult = () => {
@@ -108,7 +127,7 @@ class WriteSecre extends React.Component {
       if (!errors) {
         this.setState({
           resultPreviewFlag: true,
-          formData: Object.assign({}, this.state.formData, { ...this.writeForm.props.form.getFieldsValue(), created_at: parseTime(new Date()), audioUrl: this.state.audioUrl })
+          formData: Object.assign({}, this.state.formData, { ...this.writeForm.props.form.getFieldsValue(), created_at: parseTime(new Date()), audioUrl: this.state.audioUrl, wxAudioLocalId: this.state.wxAudioLocalId })
         })
       } else {
         for (let x in errors) {
@@ -152,17 +171,20 @@ class WriteSecre extends React.Component {
     })
   }
 
-  setAudioUrl = (blob) => {
-    if(blob){
+  setAudioUrl = (blob, type) => {
+    if (type == 'wx') {
       this.setState({
-        audioBlod: blob,
-        audioUrl: URL.createObjectURL(blob)
-      },() => {
-        this.previewResult()
+        wxAudioLocalId: blob
       })
-    }else{
-      this.previewResult()
+    } else {
+      if (blob) {
+        this.setState({
+          audioBlod: blob,
+          audioUrl: URL.createObjectURL(blob)
+        })
+      }
     }
+
   }
 
   render() {
@@ -176,7 +198,7 @@ class WriteSecre extends React.Component {
         <div><img className="top-bg" src={bgUrl}></img></div>
         <div className="main">
           {
-            resultPreviewFlag ? <PreviewForm previewImg={this.previewImg} formData={formData}></PreviewForm> : <WriteForm formData={formData} previewImg={this.previewImg} setImageFile={this.setImageFile} getCodeUrl={this.getCodeUrl} setAudioUrl={this.setAudioUrl} wrappedComponentRef={(form) => this.writeForm = form}></WriteForm>
+            resultPreviewFlag ? <PreviewForm previewImg={this.previewImg} formData={formData}></PreviewForm> : <WriteForm formData={formData} previewImg={this.previewImg} setImageFile={this.setImageFile} getCodeUrl={this.getCodeUrl} setAudioUrl={this.setAudioUrl} previwe wrappedComponentRef={(form) => this.writeForm = form}></WriteForm>
           }
         </div>
         <div className="fixed-bottom">
@@ -184,7 +206,7 @@ class WriteSecre extends React.Component {
             resultPreviewFlag ? <div className="wrap">
               <Button onClick={this.returnEdit}>返回修改</Button>
               <Button onClick={this.formSubmit}>确认提交</Button>
-            </div>:null
+            </div> : <Button onClick={this.previewResult}>预览</Button>
           }
         </div>
       </div>
