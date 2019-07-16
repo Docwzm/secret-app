@@ -6,15 +6,15 @@ import WxImageViewer from 'react-wx-images-viewer';
 import { staticHost2ApiHost } from '@/utils/env'
 import PreviewForm from './components/previewForm'
 import { isWeiXin } from '../../utils/util';
-import check_bg_top  from '../../assets/images/check_top_bg.jpg'
-import {cacheData} from './cache'
+import check_bg_top from '../../assets/images/check_top_bg.jpg'
+import { cacheData } from './cache'
 const wx = window.wx
 class CheckSecre extends React.Component {
   state = {
     check_status: 'off',
     audioUrl: '',
     audioStatus: 0,
-    secretInfo: {},
+    secretInfo: null,
     previewFlag: false,
     previewImgArr: [],
     previewImgIndex: 0,
@@ -22,7 +22,22 @@ class CheckSecre extends React.Component {
   }
 
   componentWillMount() {
-    
+    if (sessionStorage.getItem('check_top_bg')) {
+      this.setState({
+        bgUrl: sessionStorage.getItem('check_top_bg')
+      })
+    } else {
+      this.getBgUrl()
+    }
+    if (cacheData.secretInfo || sessionStorage.getItem("secretInfo")) {
+      let secretInfo = cacheData.secretInfo || JSON.parse(sessionStorage.getItem("secretInfo"));
+      this.setState({
+        check_status: 'on',
+        secretInfo
+      })
+    }else{
+      this.props.history.replace('/powerionics/check')
+    }
   }
 
   getBgUrl = () => {
@@ -30,7 +45,7 @@ class CheckSecre extends React.Component {
       let data = res.data;
       if (data && data.length != 0) {
         let bgUrl = staticHost2ApiHost() + data[0].rel_image.path;
-        sessionStorage.setItem('check_top_bg',bgUrl)
+        sessionStorage.setItem('check_top_bg', bgUrl)
         this.setState({
           bgUrl
         })
@@ -47,47 +62,35 @@ class CheckSecre extends React.Component {
       if (data.rel_thumb) {
         data.files = [{ url: staticHost2ApiHost() + data.rel_thumb.path }]
       }
-      if(isWeiXin()){
+      if (isWeiXin()) {
         if (data.wx_audio) {
           wx.downloadVoice({
             serverId: data.wx_audio, // 需要下载的音频的服务器端ID，由uploadVoice接口获得
             isShowProgressTips: 1, // 默认为1，显示进度提示
             success: (res) => {
               data.wxAudioLocalId = res.localId
-              cacheData.secretInfo = data;
               sessionStorage.setItem("secretInfo", JSON.stringify(data));
-              setTimeout(() => {
-                this.props.history.push('/powerionics/checkDetail')
-              },100)
-              // this.setState({
-              //   check_status: 'on',
-              //   secretInfo: data
-              // })
+              this.setState({
+                check_status: 'on',
+                secretInfo: data
+              })
             },
             fail: (e) => {
             }
           });
         } else {
-          cacheData.secretInfo = data;
           sessionStorage.setItem("secretInfo", JSON.stringify(data));
-          setTimeout(() => {
-            this.props.history.push('/powerionics/checkDetail')
-          },100)
-          // this.setState({
-          //   check_status: 'on',
-          //   secretInfo: data
-          // })
+          this.setState({
+            check_status: 'on',
+            secretInfo: data
+          })
         }
-      }else{
-        cacheData.secretInfo = data;
+      } else {
         sessionStorage.setItem("secretInfo", JSON.stringify(data));
-        setTimeout(() => {
-          this.props.history.push('/powerionics/checkDetail')
-        },100)
-        // this.setState({
-        //   check_status: 'on',
-        //   secretInfo: data
-        // })
+        this.setState({
+          check_status: 'on',
+          secretInfo: data
+        })
       }
     })
   }
@@ -138,37 +141,14 @@ class CheckSecre extends React.Component {
           previewFlag ? <WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex} /> : null
         }
         {
-          check_status === 'off' ? <div className="secret-check-form-wrap">
-            <div className="top">
-              <img src={check_bg_top}></img>
+          secretInfo ? <div className="result">
+            <div className="top"><img src={bgUrl}></img></div>
+            <PreviewForm previewImg={this.previewImg} formData={secretInfo}></PreviewForm>
+            <div className="fixed-bottom">
+              <a className="url-btn" href="//powerionics.jd.com">我也要挑选礼物送TA</a>
+              <span onClick={this.gotoHelpCenter} className="help-center">帮助中心</span>
             </div>
-            <div className="main">
-              <div className="tip">
-                <p>您的朋友随礼物还给您留了一段私言密语，您的手机号是查询留言的密码！</p>
-                <p>请输入您的手机号码查看TA为您留下的私言密语......</p>
-              </div>
-              <form className="secret-check-form">
-                <div className="label">输入你的手机号码</div>
-                <InputItem
-                  type="phone"
-                  {...getFieldProps('phone', {
-                    initialValue: this.state.phone,
-                    rules: [
-                      { required: true, message: '请输入手机号码' },
-                    ],
-                  })}
-                ></InputItem>
-                <Button className="search-btn" size="small" onClick={this.onSubmit}>查看</Button>
-              </form>
-            </div>
-          </div> : <div className="result">
-              <div className="top"><img src={bgUrl}></img></div>
-              <PreviewForm previewImg={this.previewImg} formData={secretInfo}></PreviewForm>
-              <div className="fixed-bottom">
-                <a className="url-btn" href="//powerionics.jd.com">我也要挑选礼物送TA</a>
-                <span onClick={this.gotoHelpCenter} className="help-center">帮助中心</span>
-              </div>
-            </div>
+          </div> : null
         }
       </div>
     )

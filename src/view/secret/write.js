@@ -6,6 +6,7 @@ import WxImageViewer from 'react-wx-images-viewer';
 import { staticHost2ApiHost } from '@/utils/env'
 import WriteForm from './components/writeForm'
 import PreviewForm from './components/previewForm'
+import { cacheData } from './cache';
 const wx = window.wx;
 class WriteSecre extends React.Component {
   constructor() {
@@ -33,6 +34,26 @@ class WriteSecre extends React.Component {
     }
 
     this.getCodeUrl()
+
+    let myCacheData = {};
+
+    if (cacheData.formData) {
+      myCacheData = {
+        havePreview: true,
+        resultPreviewFlag: true,
+        formData: cacheData.formData
+      }
+      
+    }
+    if(cacheData.returnUpdate){
+      myCacheData.returnUpdate = true;
+    }
+    if(cacheData.haveCommit){
+      myCacheData.haveCommit = true;
+    }
+    this.setState({
+      ...myCacheData
+    })
   }
 
   getBgUrl = () => {
@@ -80,8 +101,12 @@ class WriteSecre extends React.Component {
     delete values.captcha_url
 
     let func = (values) => {
+      cacheData.haveCommit = true;
+      this.setState({
+        haveCommit: true
+      })
       saveSecret(values).then(res => {
-        Toast.success('提交成功')
+        this.props.history.push(`/success`)
       }).catch(e => {
         removeLocal('_secret_wx_token')
         setTimeout(() => {
@@ -125,14 +150,16 @@ class WriteSecre extends React.Component {
   previewResult = () => {
     this.writeForm.props.form.validateFields({ force: true }, (errors, values) => {
       if (!errors) {
+        cacheData.formData = Object.assign({}, this.state.formData, { ...this.writeForm.props.form.getFieldsValue(), created_at: parseTime(new Date()), audioUrl: this.state.audioUrl, wxAudioLocalId: this.state.wxAudioLocalId })
         this.setState({
+          havePreview: true,
           resultPreviewFlag: true,
           formData: Object.assign({}, this.state.formData, { ...this.writeForm.props.form.getFieldsValue(), created_at: parseTime(new Date()), audioUrl: this.state.audioUrl, wxAudioLocalId: this.state.wxAudioLocalId })
         })
       } else {
         for (let x in errors) {
           let error = errors[x];
-          Toast.info(error.errors[0].message)
+          Toast.info(error.errors[0].message, 1)
           return
         }
       }
@@ -140,7 +167,9 @@ class WriteSecre extends React.Component {
   }
 
   returnEdit = () => {
+    cacheData.returnUpdate = true;
     this.setState({
+      returnUpdate: true,
       resultPreviewFlag: false
     })
   }
@@ -188,7 +217,7 @@ class WriteSecre extends React.Component {
   }
 
   render() {
-    let { previewFlag, previewImgArr, previewImgIndex, bgUrl, resultPreviewFlag, formData } = this.state
+    let { previewFlag, previewImgArr, previewImgIndex, bgUrl, resultPreviewFlag, formData, havePreview, returnUpdate, haveCommit } = this.state
 
     return (
       <div className="write-wrap">
@@ -204,9 +233,9 @@ class WriteSecre extends React.Component {
         <div className="fixed-bottom">
           {
             resultPreviewFlag ? <div className="wrap">
-              <Button onClick={this.returnEdit}>返回修改</Button>
-              <Button onClick={this.formSubmit}>确认提交</Button>
-            </div> : <Button onClick={this.previewResult}>预览</Button>
+              <Button className={returnUpdate ? 'visited' : ''} onClick={this.returnEdit}>返回修改</Button>
+              <Button className={haveCommit ? 'visited' : ''} onClick={this.formSubmit}>确认提交</Button>
+            </div> : <Button className={havePreview ? 'visited' : ''} onClick={this.previewResult}>预览</Button>
           }
         </div>
       </div>
