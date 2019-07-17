@@ -2,6 +2,7 @@ import React from 'react'
 import { createForm } from 'rc-form';
 import { List, InputItem, ImagePicker, TextareaItem } from 'antd-mobile';
 import { isWeiXin } from '@/utils/util'
+import {staticHost2ApiHost} from '@/utils/env'
 const wx = window.wx
 class PreviewForm extends React.Component {
     constructor() {
@@ -19,12 +20,24 @@ class PreviewForm extends React.Component {
         }
     }
 
+    getAudioLinkStatus() {
+        let { wx_audio_link, wxAudioLocalId } = this.props.formData;
+        if (wx_audio_link) {
+            return 2
+        } else if (wxAudioLocalId) {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
     componentDidMount() {
         this.addAudioListenner()
     }
 
     addAudioListenner() {
-        if (isWeiXin()) {
+        let audioLinkStatus = this.getAudioLinkStatus();
+        if (audioLinkStatus == 1) {
             wx.onVoicePlayEnd({
                 success: (res) => {
                     // wx.stopVoice({
@@ -35,17 +48,16 @@ class PreviewForm extends React.Component {
                     })
                 }
             });
-        } else {
+        } else if (audioLinkStatus == 2) {
             let audio = document.getElementById('my_audio')
             if (audio) {
                 audio.addEventListener('ended', () => {
                     this.setState({
-                        audioPlayStatus: 3
+                        audioPlayStatus: 0
                     })
                 }, false)
             }
         }
-
     }
 
     playCommonAudio = () => {
@@ -59,7 +71,7 @@ class PreviewForm extends React.Component {
             })
         } else if (audioPlayStatus == 1) {
             this.setState({
-                audioPlayStatus: 2
+                audioPlayStatus: 0
             })
             audio.pause()
         } else if (audioPlayStatus == 2) {
@@ -87,11 +99,11 @@ class PreviewForm extends React.Component {
                     })
                 }
             });
-            
+
         } else {
             wx.pauseVoice({
                 localId: wxAudioLocalId,
-                success:() => {
+                success: () => {
                     this.setState({
                         audioPlayStatus: 0
                     })
@@ -102,9 +114,10 @@ class PreviewForm extends React.Component {
     }
 
     playAudio = () => {
-        if (isWeiXin()) {
+        if (this.getAudioLinkStatus() == 1) {
             this.playWxAudio()
         } else {
+            this.addAudioListenner()
             this.playCommonAudio()
         }
     }
@@ -112,9 +125,9 @@ class PreviewForm extends React.Component {
     render() {
         const { getFieldProps } = this.props.form;
         let { audioPlayStatus } = this.state;
-        let { say_to_you, files = [], username, created_at, audioUrl, wxAudioLocalId } = this.props.formData;
+        let { say_to_you, files = [], username, created_at, audioUrl, wxAudioLocalId, wx_audio_link } = this.props.formData;
         let imgUrl = files && files.length != 0 ? files[0].url : ''
-        let havaAudio = isWeiXin() ? wxAudioLocalId : audioUrl
+        let audioLinkStatus = this.getAudioLinkStatus()
         return (
             <form className="my-form preview-form">
                 <List className="audio-list" renderHeader={() => {
@@ -127,9 +140,9 @@ class PreviewForm extends React.Component {
                     <div>
                         <p className="word-wrap">{say_to_you}</p>
                         {
-                            havaAudio ? <div className="audio-wrap">
+                            audioLinkStatus != 0 ? <div className="audio-wrap">
                                 <p onClick={this.playAudio} className={(audioPlayStatus == 1 ? 'btn end' : 'btn start')}></p>
-                                {isWeiXin() ? null : <audio id="my_audio" src={audioUrl}></audio>}
+                                {audioLinkStatus == 2 ? <audio id="my_audio" src={staticHost2ApiHost()+wx_audio_link}></audio> : null}
                             </div> : null
                         }
                     </div>
