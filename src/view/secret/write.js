@@ -230,6 +230,7 @@ class WriteSecre extends React.Component {
             resultPreviewFlag ? <PreviewForm previewImg={this.previewImg} formData={formData}></PreviewForm> : <WriteForm formData={formData} previewImg={this.previewImg} setImageFile={this.setImageFile} getCodeUrl={this.getCodeUrl} setAudioUrl={this.setAudioUrl} previwe wrappedComponentRef={(form) => this.writeForm = form}></WriteForm>
           }
         </div>
+        <div className="footer-record">©2009-2019 深圳市史摩斯贸易有限公司 版权所有<br/>互联网ICP备案：粤ICP备14040574号-1  </div>
         <div className="fixed-bottom">
           {
             resultPreviewFlag ? <div className="wrap">

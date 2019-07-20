@@ -35,7 +35,7 @@ class CheckSecre extends React.Component {
         check_status: 'on',
         secretInfo
       })
-    }else{
+    } else {
       this.props.history.replace('/powerionics/check')
     }
   }
@@ -136,7 +136,7 @@ class CheckSecre extends React.Component {
     let { check_status, secretInfo, previewFlag, previewImgArr, previewImgIndex, bgUrl } = this.state;
     const { getFieldProps } = this.props.form;
     return (
-      <div className="secret-check-wrap">
+      <div className="secret-check-wrap result-wrap">
         {
           previewFlag ? <WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex} /> : null
         }
@@ -150,6 +150,7 @@ class CheckSecre extends React.Component {
             </div>
           </div> : null
         }
+        <div className="footer-record">©2009-2019 深圳市史摩斯贸易有限公司 版权所有<br/>互联网ICP备案：粤ICP备14040574号-1  </div>
       </div>
     )
   }

@@ -6,8 +6,8 @@ import WxImageViewer from 'react-wx-images-viewer';
 import { staticHost2ApiHost } from '@/utils/env'
 import PreviewForm from './components/previewForm'
 import { isWeiXin } from '../../utils/util';
-import check_bg_top  from '../../assets/images/check_top_bg.jpg'
-import {cacheData} from './cache'
+import check_bg_top from '../../assets/images/check_top_bg.jpg'
+import { cacheData } from './cache'
 const wx = window.wx
 class CheckSecre extends React.Component {
   state = {
@@ -22,7 +22,7 @@ class CheckSecre extends React.Component {
   }
 
   componentWillMount() {
-    
+
   }
 
   getBgUrl = () => {
@@ -30,7 +30,7 @@ class CheckSecre extends React.Component {
       let data = res.data;
       if (data && data.length != 0) {
         let bgUrl = staticHost2ApiHost() + data[0].rel_image.path;
-        sessionStorage.setItem('check_top_bg',bgUrl)
+        sessionStorage.setItem('check_top_bg', bgUrl)
         this.setState({
           bgUrl
         })
@@ -47,7 +47,7 @@ class CheckSecre extends React.Component {
       if (data.rel_thumb) {
         data.files = [{ url: staticHost2ApiHost() + data.rel_thumb.path }]
       }
-      if(isWeiXin()){
+      if (isWeiXin()) {
         if (data.wx_audio) {
           wx.downloadVoice({
             serverId: data.wx_audio, // 需要下载的音频的服务器端ID，由uploadVoice接口获得
@@ -58,7 +58,7 @@ class CheckSecre extends React.Component {
               sessionStorage.setItem("secretInfo", JSON.stringify(data));
               setTimeout(() => {
                 this.props.history.push('/powerionics/checkDetail')
-              },100)
+              }, 100)
               // this.setState({
               //   check_status: 'on',
               //   secretInfo: data
@@ -72,18 +72,18 @@ class CheckSecre extends React.Component {
           sessionStorage.setItem("secretInfo", JSON.stringify(data));
           setTimeout(() => {
             this.props.history.push('/powerionics/checkDetail')
-          },100)
+          }, 100)
           // this.setState({
           //   check_status: 'on',
           //   secretInfo: data
           // })
         }
-      }else{
+      } else {
         cacheData.secretInfo = data;
         sessionStorage.setItem("secretInfo", JSON.stringify(data));
         setTimeout(() => {
           this.props.history.push('/powerionics/checkDetail')
-        },100)
+        }, 100)
         // this.setState({
         //   check_status: 'on',
         //   secretInfo: data
@@ -170,6 +170,8 @@ class CheckSecre extends React.Component {
               </div>
             </div>
         }
+
+<div className="footer-record">©2009-2019 深圳市史摩斯贸易有限公司 版权所有<br/>互联网ICP备案：粤ICP备14040574号-1  </div>
       </div>
     )
   }
