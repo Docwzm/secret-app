@@ -52,7 +52,7 @@ export default class extends React.Component {
         // let paramsCode = queryUrlParam(window.location.search, 'code');
         // let code = sessionStorage.getItem('code')
         // if (!paramsCode && !code) {
-        let url = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appid}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
+        let url = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appid}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_userinfo&state=STATE&connect_redirect=1#wechat_redirect`
         window.location.replace(url)
         // } else if(!code){
         //     sessionStorage.setItem('code', paramsCode)
