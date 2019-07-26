@@ -107,11 +107,6 @@ class WriteSecre extends React.Component {
       })
       saveSecret(values).then(res => {
         this.props.history.push(`/success`)
-      }).catch(e => {
-        removeLocal('_secret_wx_token')
-        setTimeout(() => {
-          this.props.history.replace(`/powerionics/write`)
-        }, 100)
       })
     }
 
