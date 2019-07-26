@@ -8,6 +8,8 @@ import PreviewForm from './components/previewForm'
 import { isWeiXin } from '../../utils/util';
 import check_bg_top from '../../assets/images/check_top_bg.jpg'
 import { cacheData } from './cache'
+import { Base64 } from 'js-base64';
+
 const wx = window.wx
 class CheckSecre extends React.Component {
   state = {
@@ -56,6 +58,10 @@ class CheckSecre extends React.Component {
   getInfo(phone) {
     getSecret(phone).then(res => {
       let data = res.data;
+      if(data.username){
+        data.username = Base64.decode(data.username);
+      }
+      data.say_to_you = Base64.decode(data.say_to_you);
       if (data.rel_audio) {
         data.audioUrl = staticHost2ApiHost() + data.rel_audio.path
       }

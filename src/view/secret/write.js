@@ -7,6 +7,8 @@ import { staticHost2ApiHost } from '@/utils/env'
 import WriteForm from './components/writeForm'
 import PreviewForm from './components/previewForm'
 import { cacheData } from './cache';
+import { Base64 } from 'js-base64';
+
 const wx = window.wx;
 class WriteSecre extends React.Component {
   constructor() {
@@ -99,6 +101,11 @@ class WriteSecre extends React.Component {
     delete values.created_at
     delete values.audioUrl
     delete values.captcha_url
+
+    values.say_to_you = Base64.encode(values.say_to_you)
+    if(values.username){
+      values.username = Base64.encode(values.username)
+    }
 
     let func = (values) => {
       cacheData.haveCommit = true;

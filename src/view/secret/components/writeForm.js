@@ -324,7 +324,7 @@ class WriteForm extends React.Component {
                     return (
                         <div>
                             <p className="label require">验证码：</p>
-                            <p>填入右边您看到的字母</p>
+                            <p>填入右边您看到的数字</p>
                         </div>
                     )
                 }}>
