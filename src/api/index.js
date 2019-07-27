@@ -79,7 +79,8 @@ const getToken = (code) => {
     url: '/api/wechat-token',
     method: 'get',
     params:{
-      code
+      code,
+      noToast:true
     }
   })
 }
@@ -94,8 +95,18 @@ const getWxConfig = (url) => {
   })
 }
 
+const valid = (data) => {
+  return request({
+    url: '/api/speech/pre-valid',
+    method: 'post',
+    data
+  })
+}
+
+
 
 export {
+  valid,
   getSecret,
   saveSecret,
   uploadAudio,

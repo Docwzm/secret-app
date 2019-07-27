@@ -1,13 +1,13 @@
 import React from 'react'
 import { Toast, Button } from 'antd-mobile';
 import { getLocal, removeLocal, parseTime, queryUrlParam, isWeiXin } from '@/utils/util'
-import { saveSecret, uploadAudio, getCodeUrl, getBgUrl } from '@/api'
+import { saveSecret, uploadAudio, getCodeUrl, getBgUrl,valid } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 import { staticHost2ApiHost } from '@/utils/env'
 import WriteForm from './components/writeForm'
 import PreviewForm from './components/previewForm'
 import { cacheData } from './cache';
-import { Base64 } from 'js-base64';
+// import { Base64 } from 'js-base64';
 
 const wx = window.wx;
 class WriteSecre extends React.Component {
@@ -102,10 +102,10 @@ class WriteSecre extends React.Component {
     delete values.audioUrl
     delete values.captcha_url
 
-    values.say_to_you = Base64.encode(values.say_to_you)
-    if(values.username){
-      values.username = Base64.encode(values.username)
-    }
+    // values.say_to_you = Base64.encode(values.say_to_you)
+    // if(values.username){
+    //   values.username = Base64.encode(values.username)
+    // }
 
     let func = (values) => {
       cacheData.haveCommit = true;
@@ -152,12 +152,54 @@ class WriteSecre extends React.Component {
   previewResult = () => {
     this.writeForm.props.form.validateFields({ force: true }, (errors, values) => {
       if (!errors) {
-        cacheData.formData = Object.assign({}, this.state.formData, { ...this.writeForm.props.form.getFieldsValue(), created_at: parseTime(new Date()), audioUrl: this.state.audioUrl, wxAudioLocalId: this.state.wxAudioLocalId })
-        this.setState({
-          havePreview: true,
-          resultPreviewFlag: true,
-          formData: Object.assign({}, this.state.formData, { ...this.writeForm.props.form.getFieldsValue(), created_at: parseTime(new Date()), audioUrl: this.state.audioUrl, wxAudioLocalId: this.state.wxAudioLocalId })
-        })
+        // values = Object.assign({}, this.state.formData);
+        let formData = Object.assign({}, this.state.formData, { ...values, created_at: parseTime(new Date()), audioUrl: this.state.audioUrl, wxAudioLocalId: this.state.wxAudioLocalId })
+        values = Object.assign({}, formData);
+        let token = getLocal('_secret_wx_token');
+        if (token) {
+          values.wechat_token = token
+        }
+        if (this.state.imgFileId) {
+          values.thumb = this.state.imgFileId
+        } else {
+          values.thumb = 0
+        }
+        values.mobile = values.mobile.replace(/\s*/g, '');
+        values.captcha_key = this.state.codeKey
+        delete values.files
+        delete values.created_at
+        delete values.audioUrl
+        delete values.captcha_url
+
+
+        let func = (values) => {
+          valid(values).then(res => {
+            cacheData.formData = formData
+            this.setState({
+              havePreview: true,
+              resultPreviewFlag: true,
+              formData
+            })
+          })
+        }
+    
+        if (isWeiXin()) {
+          if (this.state.wxAudioLocalId) {
+            wx.uploadVoice({
+              localId: this.state.wxAudioLocalId, // 需要上传的音频的本地ID，由stopRecord接口获得
+              isShowProgressTips: 1, // 默认为1，显示进度提示
+              success: (res) => {
+                values.wx_audio = res.serverId; // 返回音频的服务器端ID
+                values.audio = 0
+                func(values)
+              }
+            });
+          } else {
+            values.audio = 0
+            func(values)
+          }
+        } 
+
       } else {
         for (let x in errors) {
           let error = errors[x];

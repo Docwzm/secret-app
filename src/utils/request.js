@@ -2,7 +2,7 @@ import axios from 'axios'
 import { staticHost2ApiHost } from './env'
 import { Toast } from 'antd-mobile';
 // axios.defaults.withCredentials = true;
-
+let noToast = false;
 let pending = []; //声明一个数组用于存储每个ajax请求的取消函数和ajax标识
 let cancelToken = axios.CancelToken;
 let removePending = (config) => {
@@ -26,13 +26,20 @@ const service = axios.create({
 // request拦截器
 service.interceptors.request.use(
   config => {
+    if(config.params&&config.params.noToast){
+      noToast = true;
+    }else{
+      noToast = false;
+    }
     Toast.loading('', 0)
     removePending(config); //在一个ajax发送前执行一下取消操作
     config.cancelToken = new cancelToken((c)=>{
         // 这里的ajax标识我是用请求地址&请求方式拼接的字符串，当然你可以选择其他的一些方式
         pending.push({ u: config.url + '&' + config.method, f: c });  
     });
-    // Object.assign(config.params,{requestId:new Date().getTime()+''+parseInt(Math.random*1000),appType:20})
+    if(config.params){
+      delete config.params.noToast
+    }
     return config
   },
   error => {
@@ -47,10 +54,12 @@ service.interceptors.response.use(
     Toast.hide()
     removePending(response.config);  //在一个ajax响应后再执行一下取消操作，把已经完成的请求从pending中移除
     if (res.code != 0) {
-      if(res.data && typeof res.data == 'string'){
-        Toast.info(res.msg+':'+res.data,2)
-      }else{
-        Toast.info(res.msg,2)
+      if(!noToast){
+        if(res.data && typeof res.data == 'string'){
+          Toast.info(res.msg+':'+res.data,2)
+        }else{
+          Toast.info(res.msg,2)
+        }
       }
       return Promise.reject(res)
     } else {
@@ -59,7 +68,9 @@ service.interceptors.response.use(
   },
   error => {
     Toast.hide()
-    Toast.info(error.message,2)
+    if(!noToast){
+      Toast.info(error.message,2)
+    }
     return Promise.reject(error)
   }
 )

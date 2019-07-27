@@ -28,13 +28,28 @@ export default class extends React.Component {
                     } else {
                         getToken(code).then(res => {
                             token = res.data
-                            setLocal('_secret_wx_token', token)
+                            if(token){
+                                setLocal('_secret_wx_token', token)
+                            }
                             setTimeout(() => {
                                 this.props.history.replace(returnPath)
+                                this.setState({
+                                    token:'have_token'
+                                })
+                            }, 100)
+                        }).catch(e => {
+                            setTimeout(() => {
+                                this.props.history.replace(returnPath)
+                                this.setState({
+                                    token:'no_token'
+                                })
                             }, 100)
                         })
                     }
                 } else {
+                    this.setState({
+                        token:'haveToken'
+                    })
                     this.props.history.replace(returnPath)
                 }
             } else {
@@ -60,7 +75,7 @@ export default class extends React.Component {
         // }
     }
     render() {
-        let token = getLocal('_secret_wx_token')
+        let {token} = this.state
         return token ? <div id="secret-wrap">
             {
                 this.props.routes.map((route, index) => {
