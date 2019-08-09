@@ -1,7 +1,7 @@
 import React from 'react'
-import { Toast, Button } from 'antd-mobile';
+import { Modal, Toast, Button } from 'antd-mobile';
 import { getLocal, removeLocal, parseTime, queryUrlParam, isWeiXin } from '@/utils/util'
-import { saveSecret, uploadAudio, getCodeUrl, getBgUrl,valid } from '@/api'
+import { saveSecret, uploadAudio, getCodeUrl, getBgUrl, valid } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
 import { staticHost2ApiHost } from '@/utils/env'
 import WriteForm from './components/writeForm'
@@ -45,12 +45,12 @@ class WriteSecre extends React.Component {
         resultPreviewFlag: true,
         formData: cacheData.formData
       }
-      
+
     }
-    if(cacheData.returnUpdate){
+    if (cacheData.returnUpdate) {
       myCacheData.returnUpdate = true;
     }
-    if(cacheData.haveCommit){
+    if (cacheData.haveCommit) {
       myCacheData.haveCommit = true;
     }
     this.setState({
@@ -126,6 +126,9 @@ class WriteSecre extends React.Component {
             values.wx_audio = res.serverId; // 返回音频的服务器端ID
             values.audio = 0
             func(values)
+          },
+          fail: (res) => {
+            this.setState({ uploadModal: true })
           }
         });
       } else {
@@ -182,7 +185,7 @@ class WriteSecre extends React.Component {
             })
           })
         }
-    
+
         if (isWeiXin()) {
           if (this.state.wxAudioLocalId) {
             wx.uploadVoice({
@@ -192,13 +195,16 @@ class WriteSecre extends React.Component {
                 values.wx_audio = res.serverId; // 返回音频的服务器端ID
                 values.audio = 0
                 func(values)
+              },
+              fail: (res) => {
+                this.setState({ uploadModal: true })
               }
             });
           } else {
             values.audio = 0
             func(values)
           }
-        } 
+        }
 
       } else {
         for (let x in errors) {
@@ -262,9 +268,21 @@ class WriteSecre extends React.Component {
 
   render() {
     let { previewFlag, previewImgArr, previewImgIndex, bgUrl, resultPreviewFlag, formData, havePreview, returnUpdate, haveCommit } = this.state
-
     return (
       <div className="write-wrap">
+        <Modal
+          className='upload-modal'
+          visible={this.state.uploadModal}
+          transparent
+          maskClosable={false}
+          onClose={() => { }}
+          title="语音上传失败"
+          footer={[{ text: '确定', onPress: () => { this.setState({ uploadModal: false }) } }]}
+        >
+          <div>
+            请检查您的微信版本并升级至最新
+          </div>
+        </Modal>
         {
           previewFlag ? <WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex} /> : null
         }
@@ -274,7 +292,7 @@ class WriteSecre extends React.Component {
             resultPreviewFlag ? <PreviewForm previewImg={this.previewImg} formData={formData}></PreviewForm> : <WriteForm formData={formData} previewImg={this.previewImg} setImageFile={this.setImageFile} getCodeUrl={this.getCodeUrl} setAudioUrl={this.setAudioUrl} previwe wrappedComponentRef={(form) => this.writeForm = form}></WriteForm>
           }
         </div>
-        <div className="footer-record">©2009-2019 深圳市史摩斯贸易有限公司 版权所有<br/>互联网ICP备案：粤ICP备14040574号-1  </div>
+        <div className="footer-record">©2009-2019 深圳市史摩斯贸易有限公司 版权所有<br />互联网ICP备案：粤ICP备14040574号-1  </div>
         <div className="fixed-bottom">
           {
             resultPreviewFlag ? <div className="wrap">

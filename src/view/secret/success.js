@@ -12,9 +12,9 @@ class Success extends React.Component {
         title="提交成功"
         message=""
       />
-      <div className="warn-tip">
+      {/* <div className="warn-tip">
         亲，若您忘记在天猫或京东订单备注“私言密语”，请务必及时用旺旺或叮咚联系在线客服备注！
-      </div>
+      </div> */}
 
       
       <div className="qr-wrap">

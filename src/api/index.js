@@ -5,11 +5,20 @@ const getSecret = (mobile) => {
     url: '/api/speech/info-mobile',
     method: 'get',
     params: {
-      mobile
+      mobile,
+      noToast:true
     }
   })
 }
 
+
+const updateRecord = (id,data) => {
+  return request({
+    url: '/api/speech/'+id,
+    method: 'put',
+    data
+  })
+}
 
 const saveSecret = (data) => {
   return request({
@@ -114,5 +123,6 @@ export {
   getCodeUrl,
   getBgUrl,
   getToken,
-  getWxConfig
+  getWxConfig,
+  updateRecord
 }

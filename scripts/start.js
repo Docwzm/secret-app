@@ -4,9 +4,7 @@
 process.env.BABEL_ENV = 'development';
 process.env.NODE_ENV = 'development';
 // process.env.HTTPS = true
-// process.env.HOST = '172.16.10.131'
-// process.env.HOST = '192.168.0.173'
-process.env.HOST = '192.168.0.161'
+process.env.HOST = '0.0.0.0'
 
 
 // Makes the script crash on unhandled rejections instead of silently

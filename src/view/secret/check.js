@@ -1,5 +1,5 @@
 import React from 'react'
-import { InputItem, Toast, Button } from 'antd-mobile';
+import { Modal, InputItem, Toast, Button } from 'antd-mobile';
 import { createForm } from 'rc-form';
 import { getSecret, getBgUrl } from '@/api'
 import WxImageViewer from 'react-wx-images-viewer';
@@ -53,26 +53,54 @@ class CheckSecre extends React.Component {
       if (data.rel_thumb) {
         data.files = [{ url: staticHost2ApiHost() + data.rel_thumb.path }]
       }
-      if (isWeiXin()) {
-        if (data.wx_audio) {
-          wx.downloadVoice({
-            serverId: data.wx_audio, // 需要下载的音频的服务器端ID，由uploadVoice接口获得
-            isShowProgressTips: 1, // 默认为1，显示进度提示
-            success: (res) => {
-              data.wxAudioLocalId = res.localId
-              cacheData.secretInfo = data;
-              sessionStorage.setItem("secretInfo", JSON.stringify(data));
-              setTimeout(() => {
-                this.props.history.push('/powerionics/checkDetail')
-              }, 100)
-              // this.setState({
-              //   check_status: 'on',
-              //   secretInfo: data
-              // })
-            },
-            fail: (e) => {
-            }
-          });
+      if (data.rel_audio) {
+        cacheData.secretInfo = data;
+        sessionStorage.setItem("secretInfo", JSON.stringify(data));
+        setTimeout(() => {
+          this.props.history.push('/powerionics/checkDetail')
+        }, 100)
+      } else {
+        if (isWeiXin()) {
+          if (data.wx_audio) {
+            wx.downloadVoice({
+              serverId: data.wx_audio, // 需要下载的音频的服务器端ID，由uploadVoice接口获得
+              isShowProgressTips: 1, // 默认为1，显示进度提示
+              success: (res) => {
+                data.wxAudioLocalId = res.localId
+                cacheData.secretInfo = data;
+                sessionStorage.setItem("secretInfo", JSON.stringify(data));
+                setTimeout(() => {
+                  this.props.history.push('/powerionics/checkDetail')
+                }, 100)
+              },
+              fail: (e) => {
+                // alert(JSON.stringify(e))
+                // if (e.errMsg == 'downloadVoice:the permission value is offline verifying') {
+                  data.wxAudioLocalId = null
+                  cacheData.secretInfo = data;
+                  sessionStorage.setItem("secretInfo", JSON.stringify(data));
+                  setTimeout(() => {
+                    this.props.history.push('/powerionics/checkDetail')
+                  }, 100)
+                // } else {
+                //   this.setState({
+                //     uploadModal: true
+                //   })
+                // }
+
+              }
+            });
+          } else {
+            cacheData.secretInfo = data;
+            sessionStorage.setItem("secretInfo", JSON.stringify(data));
+            setTimeout(() => {
+              this.props.history.push('/powerionics/checkDetail')
+            }, 100)
+            // this.setState({
+            //   check_status: 'on',
+            //   secretInfo: data
+            // })
+          }
         } else {
           cacheData.secretInfo = data;
           sessionStorage.setItem("secretInfo", JSON.stringify(data));
@@ -84,16 +112,17 @@ class CheckSecre extends React.Component {
           //   secretInfo: data
           // })
         }
+      }
+    }).catch(e => {
+      if (e.code == 10000) {
+        Toast.info(e.msg + ':' + e.data, 2)
+      } else if (e.code == 20111) {
+        this.setState({
+          checkModal: true
+        })
+        // Toast.info('此手机号码暂未提交留言，请您与填卡人确认并核对手机号码是否正确！',2)
       } else {
-        cacheData.secretInfo = data;
-        sessionStorage.setItem("secretInfo", JSON.stringify(data));
-        setTimeout(() => {
-          this.props.history.push('/powerionics/checkDetail')
-        }, 100)
-        // this.setState({
-        //   check_status: 'on',
-        //   secretInfo: data
-        // })
+        Toast.info(e.msg, 2)
       }
     })
   }
@@ -140,6 +169,31 @@ class CheckSecre extends React.Component {
     const { getFieldProps } = this.props.form;
     return (
       <div className="secret-check-wrap">
+        <Modal
+          className='upload-modal'
+          visible={this.state.uploadModal}
+          transparent
+          maskClosable={false}
+          onClose={() => { }}
+          title="语音上传失败"
+          footer={[{ text: '确定', onPress: () => { this.setState({ uploadModal: false }) } }]}
+        >
+          <div>
+            请检查您的微信版本并升级至最新
+          </div>
+        </Modal>
+        <Modal
+          className='check-modal'
+          visible={this.state.checkModal}
+          transparent
+          maskClosable={false}
+          onClose={() => { }}
+          footer={[{ text: '确定', onPress: () => { this.setState({ checkModal: false }) } }]}
+        >
+          <div>
+            此手机号码暂未提交留言，请您与填卡人确认并核对手机号码是否正确！
+          </div>
+        </Modal>
         {
           previewFlag ? <WxImageViewer onClose={this.previewClose} urls={previewImgArr} index={previewImgIndex} /> : null
         }
@@ -177,7 +231,7 @@ class CheckSecre extends React.Component {
             </div>
         }
 
-<div className="footer-record">©2009-2019 深圳市史摩斯贸易有限公司 版权所有<br/>互联网ICP备案：粤ICP备14040574号-1  </div>
+        <div className="footer-record">©2009-2019 深圳市史摩斯贸易有限公司 版权所有<br />互联网ICP备案：粤ICP备14040574号-1  </div>
       </div>
     )
   }
