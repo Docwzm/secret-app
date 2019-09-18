@@ -281,10 +281,10 @@ class CheckSecre extends React.Component {
               </div>
               <div className="main">
                 <div className="tip">
-                  <p>请输入您的手机号码重新录音......</p>
+                  <p>请输入原先填写的收卡人手机号码</p>
                 </div>
                 <form className="secret-check-form">
-                  <div className="label">输入你的手机号码</div>
+                  <div className="label">请输入原先填写的收卡人手机号码</div>
                   <InputItem
                     type="phone"
                     {...getFieldProps('phone', {
