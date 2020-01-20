@@ -179,7 +179,7 @@ class CheckSecre extends React.Component {
           footer={[{ text: '确定', onPress: () => { this.setState({ uploadModal: false }) } }]}
         >
           <div>
-            请检查您的微信版本并升级至最新
+          由于阁下的手机系统版本问题，语音无法上传，请改为文字图片留言！或者更换手机重新提交！谢谢您的配合！
           </div>
         </Modal>
         <Modal

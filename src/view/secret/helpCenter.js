@@ -1,5 +1,5 @@
 import React from 'react'
-import helpImage from '../../assets/images/help_center.png'
+import helpImage from '../../assets/images/help_center.jpeg'
 import './styles/helpCenter.scss'
 
 class HelpCenter extends React.Component {
