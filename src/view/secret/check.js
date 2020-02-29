@@ -47,13 +47,13 @@ class CheckSecre extends React.Component {
       //   data.username = Base64.decode(data.username);
       // }
       // data.say_to_you = Base64.decode(data.say_to_you);
-      if (data.rel_audio) {
-        data.audioUrl = staticHost2ApiHost() + data.rel_audio.path
+      if (data.wx_audio_link) {
+        data.audioUrl = staticHost2ApiHost() + data.wx_audio_link
       }
       if (data.rel_thumb) {
         data.files = [{ url: staticHost2ApiHost() + data.rel_thumb.path }]
       }
-      if (data.rel_audio) {
+      if (data.wx_audio_link) {
         cacheData.secretInfo = data;
         sessionStorage.setItem("secretInfo", JSON.stringify(data));
         setTimeout(() => {
