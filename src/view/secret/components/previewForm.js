@@ -181,7 +181,7 @@ class PreviewForm extends React.Component {
                     </List> : null
                 }
 
-                <List renderHeader={() => {
+                {/* <List renderHeader={() => {
                     return (
                         <div>
                             <p className="label">发送时间：</p>
@@ -194,7 +194,7 @@ class PreviewForm extends React.Component {
                         })}
                     ></InputItem>
 
-                </List>
+                </List> */}
 
 
             </form>
