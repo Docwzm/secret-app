@@ -51,7 +51,7 @@ export default class extends React.Component {
         if(returnPath=='/'){
             returnPath = '/powerionics/write' 
         }
-        let redirectUri = encodeURIComponent('https://symy.powerionics.cn/secret/?returnPath='+returnPath);
+        let redirectUri = encodeURIComponent('https://powerionics.vip/secret/?returnPath='+returnPath);
         
         // let paramsCode = queryUrlParam(window.location.search, 'code');
         // let code = sessionStorage.getItem('code')

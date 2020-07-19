@@ -63,7 +63,7 @@ export default class extends React.Component {
         let appid = 'wx3edc25d22618f5e9';
         // appid = 'wx77dc39692260dd64';
         let returnPath = this.props.location.pathname
-        let redirectUri = encodeURIComponent('https://symy.powerionics.cn/secret/?returnPath=' + returnPath);
+        let redirectUri = encodeURIComponent('https://powerionics.vip/secret/?returnPath=' + returnPath);
 
         // let paramsCode = queryUrlParam(window.location.search, 'code');
         // let code = sessionStorage.getItem('code')
