@@ -3,6 +3,6 @@ export function staticHost2ApiHost() {
     return {
         'localhost': 'https://symy.powerionics.cn',
         'symy.powerionics.cn': 'https://symy.powerionics.cn',
-        'powerionics.vip': 'https://powerionics.vip',
-    }[mHost] || 'https://powerionics.vip'
+        'www.powerionics.vip': 'https://www.powerionics.vip',
+    }[mHost] || 'https://www.powerionics.vip'
 }
