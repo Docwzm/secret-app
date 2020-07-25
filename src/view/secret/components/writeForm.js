@@ -96,6 +96,12 @@ class WriteForm extends React.Component {
                             }
                         })
                     }, 1000)
+                },
+                fail: (e) => {
+                    console.log(e)
+                },
+                complete: (e) => {
+                    console.log('complete......',e)
                 }
             })
 
